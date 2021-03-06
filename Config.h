@@ -11,7 +11,7 @@ struct Config {
     size_t cycle_gap = 10000;
     double memory_full_ratio = 0.9, kill_organisms_ratio = 0.5;
 
-    explicit Config(const std::string &path) = default;
+    explicit Config(const std::string &path){};
 
 };
 

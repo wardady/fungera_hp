@@ -1,6 +1,7 @@
 #ifndef FUNGERA_FUNGERA_H
 #define FUNGERA_FUNGERA_H
 
+
 #include <curses.h>
 #include <string>
 #include "Memory.h"
@@ -11,7 +12,7 @@ class Fungera {
 public:
     Fungera(const Fungera &) = delete;
 
-    void operator=(const Fungera &) = delete;
+    Fungera& operator=(const Fungera &) = delete;
 
     Fungera(const std::string& config_path);
 

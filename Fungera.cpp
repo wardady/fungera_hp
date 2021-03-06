@@ -1,3 +1,6 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include "Fungera.h"
 #include <iostream>
 
@@ -12,7 +15,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
 }
 
 [[noreturn]] void Fungera::run() {
-    wchar_t c;
+    decltype(getch()) c; // ВЗагалі кажучи, тут int! -- з ERR були б проблеми. Прочитаєте -- приберіть коментар.
     while (true) {
         // TODO: handle input
         c = getch();

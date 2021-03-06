@@ -10,7 +10,7 @@ public:
 
     void operator=(const Memory &) = delete;
 
-    Memory(size_t ncollumns, size_t nrows, const double memory_full_ratio);
+    Memory(size_t ncollumns, size_t nrows, double memory_full_ratio);
 
     void radiation();
 
@@ -19,7 +19,7 @@ public:
 private:
     size_t ncollumns, nrows;
     std::vector<Cell> memory_block;
-    const double memory_full_ratio;
+    double memory_full_ratio;
 };
 
 

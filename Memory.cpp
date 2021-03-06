@@ -1,7 +1,10 @@
+// This is a personal academic project. Dear PVS-Studio, please check it.
+// PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
+
 #include <random>
 #include "Memory.h"
 
-Memory::Memory(size_t ncollumns, size_t nrows, const double memory_full_ratio) : memory_full_ratio{memory_full_ratio}, ncollumns{ncollumns},
+Memory::Memory(size_t ncollumns, size_t nrows, double memory_full_ratio) : memory_full_ratio{memory_full_ratio}, ncollumns{ncollumns},
                                                                            nrows{nrows} {
     memory_block.reserve(ncollumns * nrows);
 }
@@ -19,5 +22,5 @@ bool Memory::time_to_kill() {
         else
             nbusy++;
     }
-    return nbusy / nfree > memory_full_ratio;
+    return (static_cast<double>(nbusy) / nfree) > memory_full_ratio;
 }
