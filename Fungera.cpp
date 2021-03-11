@@ -15,7 +15,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
 }
 
 [[noreturn]] void Fungera::run() {
-    decltype(getch()) c; // ВЗагалі кажучи, тут int! -- з ERR були б проблеми. Прочитаєте -- приберіть коментар.
+    decltype(getch()) c;
     while (true) {
         // TODO: handle input
         c = getch();

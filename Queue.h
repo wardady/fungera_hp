@@ -12,7 +12,7 @@ public:
 
     void kill_organisms();
 
-    Queue(const double kill_organisms_ratio) : kill_organisms_ratio{kill_organisms_ratio} {}
+    explicit Queue(const double kill_organisms_ratio) : kill_organisms_ratio{kill_organisms_ratio} {}
 
 private:
     std::vector<Organism> organisms;
