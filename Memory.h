@@ -3,11 +3,12 @@
 
 #include <vector>
 #include <stdexcept>
+#include <array>
 #include "Cell.h"
 
 class Memory {
 public:
-    Memory(const Memory &) = delete;
+//    Memory(const Memory &) = delete;
 
     void operator=(const Memory &) = delete;
 
@@ -22,6 +23,12 @@ public:
     }
 
     bool time_to_kill();
+
+    int is_allocated_region(std::array<size_t, 2> instruction_pointer,
+                            std::array<size_t, 2> size);
+
+    void allocate(std::array<size_t, 2> instruction_pointer,
+                  std::array<size_t, 2> size);
 
 private:
     size_t ncollumns, nrows;

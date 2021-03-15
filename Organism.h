@@ -7,17 +7,18 @@
 #include <cstdint>
 #include <stack>
 #include "Memory.h"
+#include "Config.h"
+#include "Queue.h"
+
+class Queue;
 
 class Organism {
 public:
     bool operator<(const Organism &rhs) const;
 
     Organism(std::array<std::size_t, 2> &size,
-             std::array<std::size_t, 2> &entry_point, Memory &memory) :
-            id{ID_seed++}, errors{}, instruction_pointer{entry_point},
-            size{size}, memory{memory} {
-
-    }
+             std::array<std::size_t, 2> &entry_point, Memory *memory,
+             Queue *queue, Config *conf);
 
 private:
     void nop();
@@ -61,7 +62,7 @@ private:
     void pop();
 
 
-    size_t errors, id;
+    size_t errors, id, reproduction_cycle, number_of_children;
     static size_t ID_seed;
     std::array<size_t, 2> instruction_pointer, size,
             child_entry_point, child_size;
@@ -72,7 +73,7 @@ private:
             {'c', {0, 0}},
             {'d', {0, 0}}
     };
-    Memory &memory;
+    Memory *memory;
     std::stack<std::array<size_t, 2>> stack;
 
     using instruction = void (Organism::*)();
@@ -104,6 +105,8 @@ private:
             {'S', {{8, 0}, &Organism::push}},
             {'P', {{8, 1}, &Organism::pop}}
     };
+    Queue *organism_queue;
+    Config *c;
 };
 
 
