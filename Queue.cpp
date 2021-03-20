@@ -14,5 +14,11 @@ void Queue::emplace_organism(Organism &rhs) {
 }
 
 void Queue::emplace_organism(Organism &&rhs) {
-    organisms.emplace_back(rhs);
+    organisms.emplace_back(std::move(rhs));
+}
+
+void Queue::cycle_all() {
+    for (auto &organism:organisms) {
+        organism.cycle();
+    }
 }

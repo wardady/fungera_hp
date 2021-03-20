@@ -9,7 +9,7 @@ class Organism;
 
 class Queue {
 public:
-//    Queue(const Queue &) = delete;
+    Queue(const Queue &) = delete;
 
     void operator=(const Queue &) = delete;
 
@@ -22,9 +22,12 @@ public:
     explicit Queue(const double kill_organisms_ratio) : kill_organisms_ratio{
             kill_organisms_ratio} {}
 
+    void cycle_all();
+
 private:
     std::vector<Organism> organisms;
     const double kill_organisms_ratio;
+
 };
 
 #endif //FUNGERA_QUEUE_H

@@ -19,7 +19,8 @@ public:
     Organism(std::array<std::size_t, 2> &size,
              std::array<std::size_t, 2> &entry_point, Memory *memory,
              Queue *queue, Config *conf);
-
+    void cycle();
+    ~Organism();
 private:
     void nop();
 
@@ -60,7 +61,6 @@ private:
     void push();
 
     void pop();
-
 
     size_t errors, id, reproduction_cycle, number_of_children;
     static size_t ID_seed;
@@ -108,6 +108,5 @@ private:
     Queue *organism_queue;
     Config *c;
 };
-
 
 #endif //FUNGERA_ORGANISM_H

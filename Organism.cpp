@@ -4,6 +4,7 @@
 #include <functional>
 #include "Organism.h"
 
+size_t Organism::ID_seed;
 
 bool Organism::operator<(const Organism &rhs) const {
     return errors < rhs.errors;
@@ -186,5 +187,26 @@ Organism::Organism(std::array<std::size_t, 2> &size,
                    std::array<std::size_t, 2> &entry_point, Memory *memory,
                    Queue *queue, Config *conf) :
         errors{}, instruction_pointer{entry_point},
-        size{size}, memory{memory}, c{conf}, organism_queue(queue),id{ID_seed++} {
+        size{size}, memory{memory}, c{conf}, organism_queue(queue),
+        id{ID_seed++} {
+}
+
+void Organism::cycle() {
+    try {
+        (this->*instructions.at(get_next_operand(0)).second)();
+    } catch (std::exception &e) {
+        errors++;
+    }
+    instruction_pointer = get_shifted_ip(1);
+    reproduction_cycle++;
+    if (errors > c->organism_death_rate ||
+        reproduction_cycle > c->kill_if_no_child) {
+        delete this;
+    }
+}
+
+Organism::~Organism() {
+    memory->deallocate(instruction_pointer, size);
+    if (child_size[0] != 0 || child_size[1] != 0)
+        memory->deallocate(child_entry_point, child_size);
 }

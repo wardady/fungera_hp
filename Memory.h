@@ -8,7 +8,7 @@
 
 class Memory {
 public:
-//    Memory(const Memory &) = delete;
+    Memory(const Memory &) = delete;
 
     void operator=(const Memory &) = delete;
 
@@ -16,21 +16,23 @@ public:
 
     void radiation();
 
-    Cell &operator()(size_t x, size_t y) {
-        if (x > ncollumns || y > nrows)
-            throw std::out_of_range("Index error");
-        return memory_block[y * nrows + x];
-    }
+    Cell &operator()(size_t x, size_t y);
 
     bool time_to_kill();
 
-    int is_allocated_region(std::array<size_t, 2> instruction_pointer,
-                            std::array<size_t, 2> size);
+    int is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
+                            const std::array<size_t, 2> &size);
 
-    void allocate(std::array<size_t, 2> instruction_pointer,
-                  std::array<size_t, 2> size);
+    void allocate(const std::array<size_t, 2> &instruction_pointer,
+                  const std::array<size_t, 2> &size);
 
+    void deallocate(const std::array<size_t, 2> &instruction_pointer,
+                  const std::array<size_t, 2> &size);
 private:
+    void set_region_allocation(const std::array<size_t, 2> &ip,
+                                  const std::array<size_t, 2> &size,
+                                  bool value);
+
     size_t ncollumns, nrows;
     std::vector<Cell> memory_block;
     double memory_full_ratio;
