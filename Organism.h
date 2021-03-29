@@ -16,11 +16,23 @@ class Organism {
 public:
     bool operator<(const Organism &rhs) const;
 
-    Organism(std::array<std::size_t, 2> &size,
-             std::array<std::size_t, 2> &entry_point, Memory *memory,
+    Organism(std::array<std::size_t, 2> size,
+             std::array<std::size_t, 2> entry_point,
+             std::array<std::size_t, 2> begin, Memory *memory,
              Queue *queue, Config *conf);
+
     void cycle();
+
+    bool operator==(const Organism &rhs) const;
+
+    Organism &operator=(const Organism &rhs) = default;
+
+    Organism(const Organism &rhs) = default;
+
+    Organism(Organism &&rhs) noexcept;
+
     ~Organism();
+
 private:
     void nop();
 
@@ -65,7 +77,7 @@ private:
     size_t errors, id, reproduction_cycle, number_of_children;
     static size_t ID_seed;
     std::array<size_t, 2> instruction_pointer, size,
-            child_entry_point, child_size;
+            child_entry_point, child_size, begin;
     std::array<int8_t, 2> delta{1, 0};
     std::unordered_map<char, std::array<std::size_t, 2>> registers{
             {'a', {0, 0}},

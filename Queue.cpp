@@ -1,6 +1,7 @@
 // This is a personal academic project. Dear PVS-Studio, please check it.
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
+#include <iostream>
 #include "Queue.h"
 
 void Queue::kill_organisms() {
@@ -9,16 +10,25 @@ void Queue::kill_organisms() {
     organisms.erase(organisms.begin(), organisms.begin() + ratio);
 }
 
-void Queue::emplace_organism(Organism &rhs) {
+void Queue::push_organism(const Organism &rhs) {
     organisms.emplace_back(rhs);
 }
 
-void Queue::emplace_organism(Organism &&rhs) {
+void Queue::push_organism(Organism &&rhs) {
     organisms.emplace_back(std::move(rhs));
 }
 
 void Queue::cycle_all() {
+    static int org = 0;
+    if (organisms.size() > org) {
+        org = organisms.size();
+        std::cout << org << std::endl;
+    }
     for (auto &organism:organisms) {
         organism.cycle();
     }
+}
+
+void Queue::remove_organism(Organism &dead) {
+    organisms.erase(std::find(organisms.begin(), organisms.end(), dead));
 }

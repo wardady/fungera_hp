@@ -22,11 +22,11 @@ void Organism::move_down() {
 }
 
 void Organism::move_right() {
-    delta = {0, 1};
+    delta = {1, 0};
 }
 
 void Organism::move_left() {
-    delta = {0, -1};
+    delta = {-1, 0};
 }
 
 char Organism::get_next_operand(size_t offset) {
@@ -64,7 +64,7 @@ std::array<size_t, 2> Organism::get_shifted_ip(size_t offset) {
 void Organism::if_not_zero() {
     auto instr = get_next_operand(1);
     if (instr == 'x' || instr == 'y') {
-        // 3 if true 2 if false. TODO: if_not_thero?
+        // 3 if true 2 if false. TODO: if_not_zero?
         instruction_pointer = get_shifted_ip(2 +
                                              static_cast<bool>(registers.at(
                                                      get_next_operand(
@@ -165,6 +165,7 @@ void Organism::allocate_child() {
         if (is_allocated_region == 0) {
             child_entry_point = get_shifted_ip(i);
             registers.at(get_next_operand(2)) = child_entry_point;
+            break;
         }
     }
     child_size = registers.at(get_next_operand(1));
@@ -175,20 +176,23 @@ void Organism::split_child() {
     if (child_size[0] != 0 && child_size[1] != 0) {
         number_of_children++;
         reproduction_cycle++;
-        organism_queue->emplace_organism(
-                Organism{child_size, child_entry_point, memory, organism_queue,
+        organism_queue->push_organism(
+                Organism{child_size, child_entry_point, child_entry_point,
+                         memory, organism_queue,
                          c});
         child_size = {0, 0};
         child_entry_point = {0, 0};
     }
 }
 
-Organism::Organism(std::array<std::size_t, 2> &size,
-                   std::array<std::size_t, 2> &entry_point, Memory *memory,
+Organism::Organism(std::array<std::size_t, 2> size,
+                   std::array<std::size_t, 2> entry_point,
+                   std::array<std::size_t, 2> begin, Memory *memory,
                    Queue *queue, Config *conf) :
         errors{}, instruction_pointer{entry_point},
         size{size}, memory{memory}, c{conf}, organism_queue(queue),
-        id{ID_seed++} {
+        id{ID_seed++}, reproduction_cycle{}, number_of_children{0},
+        child_size{}, child_entry_point{}, begin{begin} {
 }
 
 void Organism::cycle() {
@@ -201,12 +205,30 @@ void Organism::cycle() {
     reproduction_cycle++;
     if (errors > c->organism_death_rate ||
         reproduction_cycle > c->kill_if_no_child) {
-        delete this;
+        organism_queue->remove_organism(*this);
     }
 }
 
 Organism::~Organism() {
-    memory->deallocate(instruction_pointer, size);
+    if (memory == nullptr)
+        return;
+    memory->deallocate(begin, size);
     if (child_size[0] != 0 || child_size[1] != 0)
         memory->deallocate(child_entry_point, child_size);
+}
+
+bool Organism::operator==(const Organism &rhs) const {
+    return rhs.id == this->id;
+}
+
+Organism::Organism(Organism &&rhs)
+noexcept: begin{rhs.begin}, errors{rhs.errors},
+          instruction_pointer{rhs.instruction_pointer},
+          size{rhs.size}, memory{rhs.memory}, c{rhs.c},
+          organism_queue(rhs.organism_queue),
+          id{rhs.id}, reproduction_cycle{rhs.reproduction_cycle},
+          number_of_children{rhs.number_of_children},
+          child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point} {
+    this->memory = rhs.memory;
+    rhs.memory = nullptr;
 }

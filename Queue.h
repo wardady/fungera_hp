@@ -15,9 +15,11 @@ public:
 
     void kill_organisms();
 
-    void emplace_organism(Organism &rhs);
+    void push_organism(const Organism &rhs);
 
-    void emplace_organism(Organism &&rhs);
+    void push_organism(Organism &&rhs);
+
+    void remove_organism(Organism &dead);
 
     explicit Queue(const double kill_organisms_ratio) : kill_organisms_ratio{
             kill_organisms_ratio} {}
