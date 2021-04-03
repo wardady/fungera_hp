@@ -4,6 +4,9 @@
 #include <iostream>
 #include "Queue.h"
 
+#include <algorithm>
+#include <cassert>
+
 void Queue::kill_organisms() {
     std::sort(organisms.rbegin(), organisms.rend());
     auto ratio = static_cast<size_t>(organisms.size() * kill_organisms_ratio);
@@ -30,5 +33,6 @@ void Queue::cycle_all() {
 }
 
 void Queue::remove_organism(Organism &dead) {
+    assert( std::find(organisms.begin(), organisms.end(), dead) != organisms.end() );
     organisms.erase(std::find(organisms.begin(), organisms.end(), dead));
 }

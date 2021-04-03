@@ -31,6 +31,8 @@ public:
 
     Organism(Organism &&rhs) noexcept;
 
+    Organism &operator=(Organism &&rhs) noexcept;
+
     ~Organism();
 
 private:

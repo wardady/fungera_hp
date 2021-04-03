@@ -221,6 +221,7 @@ bool Organism::operator==(const Organism &rhs) const {
     return rhs.id == this->id;
 }
 
+//TODO: Set adequate moved-from object state.
 Organism::Organism(Organism &&rhs)
 noexcept: begin{rhs.begin}, errors{rhs.errors},
           instruction_pointer{rhs.instruction_pointer},
@@ -231,4 +232,25 @@ noexcept: begin{rhs.begin}, errors{rhs.errors},
           child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point} {
     this->memory = rhs.memory;
     rhs.memory = nullptr;
+}
+
+Organism &Organism::operator=(Organism &&rhs) noexcept{
+    //TODO: Set adequate moved-from object state.
+    begin = rhs.begin;
+    errors = rhs.errors;
+    instruction_pointer = rhs.instruction_pointer;
+    size = rhs.size;
+    memory = rhs.memory;
+    c = rhs.c;
+    organism_queue = rhs.organism_queue;
+    id = rhs.id;
+    reproduction_cycle = rhs.reproduction_cycle;
+    number_of_children = rhs.number_of_children;
+    child_size = rhs.child_size;
+    child_entry_point = rhs.child_entry_point;
+
+    this->memory = rhs.memory;
+    rhs.memory = nullptr;
+
+    return *this;
 }
