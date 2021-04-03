@@ -1,0 +1,13 @@
+memory_size = [5000, 5000]
+info_display_size = [25, 30]
+scroll_step = 50
+kill_organisms_ratio = 0.5
+memory_full_ratio = 0.90
+cycle_gap = 10000
+random_rate = 5
+stack_length = 8
+organism_death_rate = 100
+kill_if_no_child = 25000
+autosave_rate = [10, 2]
+penalize_parasitism = 100
+random_seed = 42
