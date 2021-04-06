@@ -195,7 +195,7 @@ Organism::Organism(std::array<std::size_t, 2> size,
         child_size{}, child_entry_point{}, begin{begin} {
 }
 
-void Organism::cycle() {
+std::optional<std::list<Organism>::iterator> Organism::cycle() {
     try {
         (this->*instructions.at(get_next_operand(0)).second)();
     } catch (std::exception &e) {
@@ -205,8 +205,9 @@ void Organism::cycle() {
     reproduction_cycle++;
     if (errors > c->organism_death_rate ||
         reproduction_cycle > c->kill_if_no_child) {
-        organism_queue->remove_organism(*this);
+        return organism_queue->remove_organism(*this);
     }
+    return {};
 }
 
 Organism::~Organism() {
@@ -234,7 +235,7 @@ noexcept: begin{rhs.begin}, errors{rhs.errors},
     rhs.memory = nullptr;
 }
 
-Organism &Organism::operator=(Organism &&rhs) noexcept{
+Organism &Organism::operator=(Organism &&rhs) noexcept {
     //TODO: Set adequate moved-from object state.
     begin = rhs.begin;
     errors = rhs.errors;

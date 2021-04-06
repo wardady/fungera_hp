@@ -8,9 +8,11 @@
 #include <cassert>
 
 void Queue::kill_organisms() {
-    std::sort(organisms.rbegin(), organisms.rend());
+    organisms.sort();
     auto ratio = static_cast<size_t>(organisms.size() * kill_organisms_ratio);
-    organisms.erase(organisms.begin(), organisms.begin() + ratio);
+    auto threshold_it = organisms.begin();
+    std::advance(threshold_it, organisms.size() - ratio);
+    organisms.erase(threshold_it, organisms.end());
 }
 
 void Queue::push_organism(const Organism &rhs) {
@@ -27,12 +29,17 @@ void Queue::cycle_all() {
         org = organisms.size();
         std::cout << org << std::endl;
     }
-    for (auto &organism:organisms) {
-        organism.cycle();
+    for (auto it = organisms.begin(); it != organisms.end();) {
+        auto new_it = it->cycle();
+        if (new_it)
+            it = new_it.value();
+        else
+            it++;
     }
 }
 
-void Queue::remove_organism(Organism &dead) {
-    assert( std::find(organisms.begin(), organisms.end(), dead) != organisms.end() );
-    organisms.erase(std::find(organisms.begin(), organisms.end(), dead));
+std::list<Organism>::iterator Queue::remove_organism(Organism &dead) {
+    assert(std::find(organisms.begin(), organisms.end(), dead) !=
+           organisms.end());
+    return organisms.erase(std::find(organisms.begin(), organisms.end(), dead));
 }

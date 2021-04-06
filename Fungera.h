@@ -18,7 +18,7 @@ public:
 
     ~Fungera() = default;
 
-    [[noreturn]] void run();
+    void run();
 
     void execute_cycle();
 

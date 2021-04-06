@@ -21,7 +21,7 @@ public:
              std::array<std::size_t, 2> begin, Memory *memory,
              Queue *queue, Config *conf);
 
-    void cycle();
+    std::optional<std::list<Organism>::iterator> cycle();
 
     bool operator==(const Organism &rhs) const;
 

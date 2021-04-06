@@ -42,8 +42,8 @@ void Fungera::load_initial_genome(const std::string &filename,
             &memory, &queue, &config));
 }
 
-[[noreturn]] void Fungera::run() {
-    while (true) {
+void Fungera::run() {
+    while (!queue.empty()) {
         execute_cycle();
     }
 }

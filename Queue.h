@@ -2,13 +2,18 @@
 #define FUNGERA_QUEUE_H
 
 
-#include <vector>
+#include <list>
 #include "Organism.h"
 
 class Organism;
 
 class Queue {
 public:
+
+    bool empty(){
+        return organisms.empty();
+    }
+
     Queue(const Queue &) = delete;
 
     void operator=(const Queue &) = delete;
@@ -19,7 +24,7 @@ public:
 
     void push_organism(Organism &&rhs);
 
-    void remove_organism(Organism &dead);
+    std::_List_iterator<Organism> remove_organism(Organism &dead);
 
     explicit Queue(const double kill_organisms_ratio) : kill_organisms_ratio{
             kill_organisms_ratio} {}
@@ -27,7 +32,7 @@ public:
     void cycle_all();
 
 private:
-    std::vector<Organism> organisms;
+    std::list<Organism> organisms;
     const double kill_organisms_ratio;
 
 };
