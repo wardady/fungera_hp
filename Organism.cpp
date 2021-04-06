@@ -145,6 +145,8 @@ void Organism::push() {
 }
 
 void Organism::pop() {
+    if (stack.empty())
+        throw std::out_of_range("Popping from empty stack!");
     registers.at(get_next_operand(1)) = stack.top();
     stack.pop();
 }
@@ -175,7 +177,7 @@ void Organism::allocate_child() {
 void Organism::split_child() {
     if (child_size[0] != 0 && child_size[1] != 0) {
         number_of_children++;
-        reproduction_cycle++;
+        reproduction_cycle = 0;
         organism_queue->push_organism(
                 Organism{child_size, child_entry_point, child_entry_point,
                          memory, organism_queue,
@@ -230,7 +232,8 @@ noexcept: begin{rhs.begin}, errors{rhs.errors},
           organism_queue(rhs.organism_queue),
           id{rhs.id}, reproduction_cycle{rhs.reproduction_cycle},
           number_of_children{rhs.number_of_children},
-          child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point} {
+          child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point},
+          stack{rhs.stack} {
     this->memory = rhs.memory;
     rhs.memory = nullptr;
 }
@@ -249,6 +252,7 @@ Organism &Organism::operator=(Organism &&rhs) noexcept {
     number_of_children = rhs.number_of_children;
     child_size = rhs.child_size;
     child_entry_point = rhs.child_entry_point;
+    stack = rhs.stack;
 
     this->memory = rhs.memory;
     rhs.memory = nullptr;

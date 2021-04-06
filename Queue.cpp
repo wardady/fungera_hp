@@ -29,7 +29,7 @@ void Queue::cycle_all() {
         org = organisms.size();
         std::cout << org << std::endl;
     }
-    for (auto it = organisms.begin(); it != organisms.end();) {
+    for (auto it {organisms.begin()}; it != organisms.end();) {
         auto new_it = it->cycle();
         if (new_it)
             it = new_it.value();
