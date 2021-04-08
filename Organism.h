@@ -90,6 +90,9 @@ private:
     Memory *memory;
     std::stack<std::array<size_t, 2>> stack;
 
+    Queue *organism_queue;
+    Config *c;
+public:
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,
             std::pair<std::array<uint8_t, 2>, instruction>> instructions{
@@ -119,8 +122,6 @@ private:
             {'S', {{8, 0}, &Organism::push}},
             {'P', {{8, 1}, &Organism::pop}}
     };
-    Queue *organism_queue;
-    Config *c;
 };
 
 #endif //FUNGERA_ORGANISM_H

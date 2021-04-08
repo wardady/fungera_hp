@@ -4,6 +4,7 @@
 
 #include <curses.h>
 #include <string>
+#include <random>
 #include "Memory.h"
 #include "Queue.h"
 #include "Config.h"
@@ -30,9 +31,15 @@ private:
     Memory memory;
     Queue queue;
     size_t purges;
+    std::discrete_distribution<int> radiation_dist;
 
     void load_initial_genome(const std::string &filename,
                              const std::array<size_t, 2> &address);
+
+    void radiation();
+
+    template<typename T>
+    static T random(T from, T to);
 };
 
 #endif //FUNGERA_FUNGERA_H

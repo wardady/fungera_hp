@@ -9,11 +9,6 @@ Memory::Memory(size_t ncollumns, size_t nrows, double memory_full_ratio)
           nrows{nrows}, memory_block{nrows * ncollumns} {
 }
 
-void Memory::radiation() {
-    // TODO:implement
-    return;
-}
-
 bool Memory::time_to_kill() {
     size_t nfree = 0, nbusy = 0;
     for (const auto &cell:memory_block) {
