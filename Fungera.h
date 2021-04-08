@@ -1,7 +1,6 @@
 #ifndef FUNGERA_FUNGERA_H
 #define FUNGERA_FUNGERA_H
 
-
 #include <string>
 #include <random>
 #include <boost/multiprecision/cpp_int.hpp>

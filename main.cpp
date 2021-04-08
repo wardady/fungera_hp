@@ -8,6 +8,9 @@
 #include <boost/archive/xml_oarchive.hpp>
 
 #include "Fungera.h"
+#include "mainwindow.h"
+
+#include <QApplication>
 
 namespace po = boost::program_options;
 namespace fs = std::filesystem;
@@ -80,6 +83,10 @@ int main(int argc, char *argv[]) {
 
     if (vm["gui"].as<bool>()) {
         std::cout << "Starting simulation with GUI" << std::endl;
+        QApplication a(argc, argv);
+        MainWindow w;
+        w.show();
+        return a.exec();
     } else {
         simulation.run();
     }

@@ -4,6 +4,7 @@
 #include "Fungera.h"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 #include <filesystem>
 #include <random>
 #include <boost/archive/text_oarchive.hpp>
