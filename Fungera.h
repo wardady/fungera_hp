@@ -38,8 +38,6 @@ private:
 
     void radiation();
 
-    template<typename T>
-    static T random(T from, T to);
 };
 
 #endif //FUNGERA_FUNGERA_H
