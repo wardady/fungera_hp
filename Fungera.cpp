@@ -13,7 +13,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                           config.memory_size[1],
                                                           config.memory_full_ratio},
                                                    queue{config.kill_organisms_ratio},
-                                                   purges{}, cycle{} {
+                                                   purges{}, cycle{0} {
     load_initial_genome("../initial.gen",
                         {config.memory_size[0] / 2, config.memory_size[1] / 2});
 

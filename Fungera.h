@@ -5,9 +5,12 @@
 #include <curses.h>
 #include <string>
 #include <random>
+#include <boost/multiprecision/cpp_int.hpp>
 #include "Memory.h"
 #include "Queue.h"
 #include "Config.h"
+
+namespace mp = boost::multiprecision;
 
 class Fungera {
 public:
@@ -15,7 +18,7 @@ public:
 
     Fungera &operator=(const Fungera &) = delete;
 
-    Fungera(const std::string &config_path);
+    explicit Fungera(const std::string &config_path);
 
     ~Fungera() = default;
 
@@ -24,7 +27,7 @@ public:
     void execute_cycle();
 
 private:
-    size_t cycle;
+    mp::checked_uint1024_t cycle;
 //    bool is_running;
 //    SCREEN *screen;
     Config config;
