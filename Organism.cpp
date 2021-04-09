@@ -2,7 +2,9 @@
 // PVS-Studio Static Code Analyzer for C, C++ and C#: http://www.viva64.com
 
 #include <functional>
+#include <random>
 #include "Organism.h"
+#include "common.h"
 
 size_t Organism::ID_seed;
 
@@ -126,14 +128,27 @@ void Organism::load_inst() {
 }
 
 void Organism::write_inst() {
+    static std::random_device rd;
+    static std::mt19937 gen(rd());
+
+    static std::uniform_real_distribution<> prob_dist
+            (0, std::nextafter(1, std::numeric_limits<double>::max()));
+
     if (!(child_size[0] == 0 && child_size[1] == 0)) {
         auto address = registers.at(get_next_operand(1));
         auto &cell = (*memory)(address[0], address[1]);
         auto instruction_register = registers.at(get_next_operand(2));
-        for (const auto &inst:instructions) {
-            if (inst.second.first[0] == instruction_register[0] &&
-                inst.second.first[1] == instruction_register[1]) {
-                cell.instruction = inst.first;
+        if (prob_dist(gen) < c->mutation_on_reproduction_rate) {
+            cell.instruction = std::next(
+                    Organism::instructions.begin(),
+                    fungera::random(static_cast<size_t>(0),
+                                    Organism::instructions.size()))->first;
+        } else {
+            for (const auto &inst:instructions) {
+                if (inst.second.first[0] == instruction_register[0] &&
+                    inst.second.first[1] == instruction_register[1]) {
+                    cell.instruction = inst.first;
+                }
             }
         }
     }
