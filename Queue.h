@@ -10,7 +10,7 @@ class Organism;
 class Queue {
 public:
 
-    bool empty(){
+    bool empty() {
         return organisms.empty();
     }
 
@@ -30,6 +30,10 @@ public:
             kill_organisms_ratio} {}
 
     void cycle_all();
+
+    size_t size();
+
+    const std::list<Organism> &get_container() const;
 
 private:
     std::list<Organism> organisms;

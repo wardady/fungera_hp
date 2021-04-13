@@ -16,7 +16,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                    purges{}, cycle{0} {
     load_initial_genome("../initial.gen",
                         {config.memory_size[0] / 2, config.memory_size[1] / 2});
-
+    geneaology_log.open("genealogy_log.log");
     double harmonic = 0, prob_of_rad =
             config.radiation_mutation_rate * 100, prob;
     for (int i{1}; i <= config.max_num_of_mutations_rad; ++i) {
@@ -64,8 +64,39 @@ void Fungera::load_initial_genome(const std::string &filename,
             &memory, &queue, &config));
 }
 
+void Fungera::info_log() {
+    std::cout << "[LOG]: " << "Cycle: " << cycle
+              << " Number of organisms: " << queue.size() << std::endl;
+}
+
+void Fungera::new_child_log() {
+    std::cout << "[LOG]: " << "Cycle: " << cycle
+              << " Number of organisms: " << queue.size() << std::endl;
+    geneaology_log << "Cycle: " << cycle << std::endl;
+    for (const auto &organism:queue.get_container()) {
+        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl;
+        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl;
+        geneaology_log << "\t\tChildren: ";
+        std::copy(organism.get_children().begin(),
+                  organism.get_children().end(),
+                  std::ostream_iterator<size_t>(geneaology_log, ", "));
+        geneaology_log << std::endl;
+    }
+    geneaology_log << std::endl;
+}
+
 void Fungera::run() {
+    static size_t organism_num = 0;
     while (!queue.empty()) {
+        if (organism_num != queue.size()) {
+            if (organism_num < queue.size())
+                new_child_log();
+            else
+                info_log();
+            organism_num = queue.size();
+        } else if (cycle % config.cycle_gap == 0) {
+            info_log();
+        }
         execute_cycle();
     }
 }

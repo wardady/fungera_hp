@@ -19,7 +19,7 @@ public:
     Organism(std::array<std::size_t, 2> size,
              std::array<std::size_t, 2> entry_point,
              std::array<std::size_t, 2> begin, Memory *memory,
-             Queue *queue, Config *conf);
+             Queue *queue, Config *conf, size_t parent_id = 0);
 
     std::optional<std::list<Organism>::iterator> cycle();
 
@@ -76,7 +76,7 @@ private:
 
     void pop();
 
-    size_t errors, id, reproduction_cycle, number_of_children;
+    size_t errors, reproduction_cycle, number_of_children;
     static size_t ID_seed;
     std::array<size_t, 2> instruction_pointer, size,
             child_entry_point, child_size, begin;
@@ -92,6 +92,8 @@ private:
 
     Queue *organism_queue;
     Config *c;
+    std::vector<size_t> children;
+    size_t id, parent_id;
 public:
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,
@@ -122,6 +124,12 @@ public:
             {'S', {{8, 0}, &Organism::push}},
             {'P', {{8, 1}, &Organism::pop}}
     };
+
+    const std::vector<size_t> &get_children() const;
+
+    const size_t &get_parent() const;
+
+    const size_t &get_id() const;
 };
 
 #endif //FUNGERA_ORGANISM_H

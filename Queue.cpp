@@ -24,12 +24,7 @@ void Queue::push_organism(Organism &&rhs) {
 }
 
 void Queue::cycle_all() {
-    static int org = 0;
-    if (organisms.size() > org) {
-        org = organisms.size();
-        std::cout << org << std::endl;
-    }
-    for (auto it {organisms.begin()}; it != organisms.end();) {
+    for (auto it{organisms.begin()}; it != organisms.end();) {
         auto new_it = it->cycle();
         if (new_it)
             it = new_it.value();
@@ -38,8 +33,16 @@ void Queue::cycle_all() {
     }
 }
 
+size_t Queue::size() {
+    return organisms.size();
+}
+
 std::list<Organism>::iterator Queue::remove_organism(Organism &dead) {
     assert(std::find(organisms.begin(), organisms.end(), dead) !=
            organisms.end());
     return organisms.erase(std::find(organisms.begin(), organisms.end(), dead));
+}
+
+const std::list<Organism> &Queue::get_container() const {
+    return organisms;
 }

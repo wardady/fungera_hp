@@ -9,6 +9,7 @@
 #include "Memory.h"
 #include "Queue.h"
 #include "Config.h"
+#include <fstream>
 
 namespace mp = boost::multiprecision;
 
@@ -35,12 +36,16 @@ private:
     Queue queue;
     size_t purges;
     std::discrete_distribution<int> radiation_dist;
+    std::ofstream geneaology_log;
 
     void load_initial_genome(const std::string &filename,
                              const std::array<size_t, 2> &address);
 
     void radiation();
 
+    void info_log();
+
+    void new_child_log();
 };
 
 #endif //FUNGERA_FUNGERA_H
