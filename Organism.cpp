@@ -177,8 +177,7 @@ void Organism::allocate_child() {
                 get_shifted_ip(i),
                 requested_size);
         if (is_allocated_region == -1)
-//             TODO: not an error?
-            return;
+            throw std::out_of_range("Requested memory block is out of range!");
         if (is_allocated_region == 0) {
             child_entry_point = get_shifted_ip(i);
             registers.at(get_next_operand(2)) = child_entry_point;
