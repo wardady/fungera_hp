@@ -9,6 +9,7 @@
 #include "Memory.h"
 #include "Config.h"
 #include "Queue.h"
+#include "CommandHeatMap.h"
 
 class Queue;
 
@@ -94,6 +95,7 @@ private:
     Config *c;
     std::vector<size_t> children;
     size_t id, parent_id;
+    CommandHeatMap commands_hm;
 public:
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,

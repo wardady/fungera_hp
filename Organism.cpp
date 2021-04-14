@@ -209,11 +209,28 @@ Organism::Organism(std::array<std::size_t, 2> size,
         size{size}, memory{memory}, c{conf}, organism_queue(queue),
         id{ID_seed++}, reproduction_cycle{}, number_of_children{0},
         child_size{}, child_entry_point{}, begin{begin}, children{},
-        parent_id{parent_id} {
+        parent_id{parent_id}, commands_hm(size[1], size[0]) {
 }
 
 std::optional<std::list<Organism>::iterator> Organism::cycle() {
     try {
+        if (instruction_pointer[0] < begin[0] ||
+            instruction_pointer[1] < begin[1] ||
+            instruction_pointer[0] > (begin[0] + size[0]) ||
+            instruction_pointer[1] > (begin[1] + size[1])) {
+            commands_hm(commands_hm.nrows, commands_hm.ncollumns)++;
+        } else {
+            std::array<size_t, 2> ip_position{};
+            std::copy(instruction_pointer.begin(),
+                      instruction_pointer.end(),
+                      ip_position.begin());
+            std::transform(ip_position.begin(), ip_position.end(),
+                           ip_position.begin(),
+                           [n = 0, this](size_t num)mutable {
+                               return num - this->begin[n++];
+                           });
+            commands_hm(ip_position[1], ip_position[0])++;
+        }
         (this->*instructions.at(get_next_operand(0)).second)();
     } catch (std::exception &e) {
         errors++;
@@ -248,7 +265,8 @@ noexcept: begin{rhs.begin}, errors{rhs.errors},
           id{rhs.id}, reproduction_cycle{rhs.reproduction_cycle},
           number_of_children{rhs.number_of_children},
           child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point},
-          stack{rhs.stack}, parent_id{rhs.parent_id}, children{rhs.children} {
+          stack{rhs.stack}, parent_id{rhs.parent_id}, children{rhs.children},
+          commands_hm(rhs.commands_hm) {
     this->memory = rhs.memory;
     rhs.memory = nullptr;
 }
@@ -283,6 +301,7 @@ Organism &Organism::operator=(Organism &&rhs) noexcept {
     stack = rhs.stack;
     children = rhs.children;
     parent_id = rhs.parent_id;
+    commands_hm = rhs.commands_hm;
 
 
     this->memory = rhs.memory;
