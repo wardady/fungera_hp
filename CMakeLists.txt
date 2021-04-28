@@ -3,7 +3,7 @@ project(fungera)
 
 set(CMAKE_CXX_STANDARD 20)
 
-find_package(Boost 1.75 REQUIRED)
+find_package(Boost 1.75 REQUIRED serialization program_options)
 include_directories(${Boost_INCLUDE_DIRS})
 
 add_executable(fungera main.cpp Fungera.cpp Fungera.h Fungera.h Queue.cpp Queue.h Organism.cpp Organism.h Memory.cpp Memory.h Cell.h Config.h common.h CommandHeatMap.cpp CommandHeatMap.h)

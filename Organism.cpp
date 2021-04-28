@@ -309,3 +309,8 @@ Organism &Organism::operator=(Organism &&rhs) noexcept {
 
     return *this;
 }
+
+Organism::Organism() : commands_hm{0, 0} {
+
+}
+

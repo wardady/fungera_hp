@@ -16,3 +16,4 @@ CommandHeatMap::CommandHeatMap(size_t nrows,
                                                            (nrows * ncollumns) +
                                                            1, 0) {
 }
+

@@ -4,9 +4,15 @@
 #include "Fungera.h"
 #include <iostream>
 #include <fstream>
+#include <filesystem>
 #include <random>
+#include <boost/archive/text_oarchive.hpp>
+#include <boost/archive/text_iarchive.hpp>
+#include <boost/multiprecision/cpp_int/serialize.hpp>
 
 #include "common.h"
+
+namespace fs = std::filesystem;
 
 Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                    memory{config.memory_size[0],
@@ -116,15 +122,43 @@ void Fungera::radiation() {
     }
 }
 
+void Fungera::save_snapshot() {
+    std::cout << "[LOG]: Saving a snapshot on cycle: " << cycle << std::endl;
+    fs::create_directories("snapshots");
+    std::stringstream snapshot_file{};
+    snapshot_file << "snapshots/snapshot_" << cycle << ".txt";
+    std::ofstream ofs(snapshot_file.str(), std::ios::trunc);
+    assert(ofs.good());
+    boost::archive::text_oarchive oa(ofs);
+    oa << boost::serialization::make_nvp("Fungera", *this);
+}
+
+void Fungera::load_from_snapshot(const std::string &path) {
+    std::cout << "[LOG]: Loading from snapshot on cycle: " << std::flush;
+    std::ifstream ifs(path);
+    assert(ifs.good());
+    boost::archive::text_iarchive ia(ifs);
+    ia >> *this;
+    std::cout << cycle << std::endl;
+}
+
 
 void Fungera::execute_cycle() {
-    queue.cycle_all();
-    radiation();
     if (cycle % config.cycle_gap == 0) {
         if (memory.time_to_kill()) {
             queue.kill_organisms();
             purges++;
         }
     }
+    if (cycle % config.snapshot_rate == 0) {
+        save_snapshot();
+    }
+    queue.cycle_all();
+    radiation();
     cycle++;
 }
+
+Fungera::Fungera() : memory{0, 0, 0}, config{""}, queue{0} {
+
+}
+

@@ -46,3 +46,8 @@ std::list<Organism>::iterator Queue::remove_organism(Organism &dead) {
 const std::list<Organism> &Queue::get_container() const {
     return organisms;
 }
+
+std::list<Organism> &Queue::_get_container() {
+    return organisms;
+}
+

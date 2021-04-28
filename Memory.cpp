@@ -63,3 +63,4 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
                 return 1;
     return 0;
 }
+

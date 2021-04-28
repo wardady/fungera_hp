@@ -16,5 +16,6 @@ namespace fungera {
         return from + dist(gen);
     }
 
+
 }
 #endif //FUNGERA_COMMON_H

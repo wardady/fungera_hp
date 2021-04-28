@@ -4,12 +4,24 @@
 #include <vector>
 #include <stdexcept>
 #include <array>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/vector.hpp>
 #include "Cell.h"
 
 class Memory {
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive &ar, unsigned int version) {
+        ar & BOOST_SERIALIZATION_NVP(ncollumns);
+        ar & BOOST_SERIALIZATION_NVP(nrows);
+        ar & BOOST_SERIALIZATION_NVP(memory_block);
+        ar & BOOST_SERIALIZATION_NVP(memory_full_ratio);
+    }
+
 public:
 
-    const size_t ncollumns, nrows;
+    size_t ncollumns, nrows;
 
     Memory(const Memory &) = delete;
 
