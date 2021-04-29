@@ -5,7 +5,7 @@
 #include <QHeaderView>
 
 void setup_stats_table(QTableWidget *tbl){
-    QVector<QString> properties = {"Cycle"};
+    QVector<QString> properties = {"Cycle","Alive"};
     tbl->setColumnCount(2);
     tbl->setRowCount(properties.size());
     for(auto i{0};i<tbl->rowCount();++i){
@@ -15,13 +15,9 @@ void setup_stats_table(QTableWidget *tbl){
     tbl->horizontalHeader()->setStretchLastSection(true);
 }
 
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+void MainWindow::setup_gui()
 {
-    ui->setupUi(this);
-
-    auto window = new QWidget();
+    auto window = new QWidget(this);
     toggle_btn = new QPushButton("Play",this);
     cycle_btn = new QPushButton("Cycle",this);
     simulation_stats = new QTableWidget(this);
@@ -40,6 +36,28 @@ MainWindow::MainWindow(QWidget *parent)
 
     window->setLayout(main_layout);
     setCentralWidget(window);
+}
+
+MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
+    : QMainWindow(parent)
+    , simulation(simulation)
+    , ui(new Ui::MainWindow)
+{
+    ui->setupUi(this);
+    setup_gui();
+
+    simulation_thread = new QThread;
+    simulation->moveToThread(simulation_thread);
+
+    connect(simulation_thread,&QThread::started,simulation,&Fungera::run);
+    connect(simulation,&Fungera::cycle_changed,simulation_stats,[this](QString cycle){
+        simulation_stats->setItem(0,1,new QTableWidgetItem(cycle));
+    },Qt::BlockingQueuedConnection);
+    connect(simulation,&Fungera::alive_changed,simulation_stats,[this](quint64 num_alive){
+        simulation_stats->setItem(1,1,new QTableWidgetItem(QString::number(num_alive)));
+    });
+
+    simulation_thread->start();
 }
 
 MainWindow::~MainWindow()

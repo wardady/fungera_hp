@@ -69,6 +69,9 @@ public:
 
     ~Organism();
 
+    size_t errors; // TODO: Move to private (here just for debug)
+    CommandHeatMap commands_hm;
+
 private:
     void nop();
 
@@ -110,7 +113,7 @@ private:
 
     void pop();
 
-    size_t errors, reproduction_cycle, number_of_children;
+    size_t reproduction_cycle, number_of_children;
     static size_t ID_seed;
     std::array<size_t, 2> instruction_pointer, size,
             child_entry_point, child_size, begin;
@@ -125,7 +128,7 @@ private:
 
     std::vector<size_t> children;
     size_t id, parent_id;
-    CommandHeatMap commands_hm;
+
 public:
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,

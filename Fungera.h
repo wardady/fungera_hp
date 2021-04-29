@@ -3,6 +3,7 @@
 
 #include <string>
 #include <random>
+#include <QObject>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -14,7 +15,9 @@
 
 namespace mp = boost::multiprecision;
 
-class Fungera {
+class Fungera : public QObject {
+Q_OBJECT
+
     friend class boost::serialization::access;
 
     template<class Archive>
@@ -68,8 +71,6 @@ public:
 
     ~Fungera() = default;
 
-    void run();
-
     void execute_cycle();
 
     void load_from_snapshot(const std::string &path);
@@ -95,6 +96,14 @@ private:
 
     void save_snapshot();
 
+public slots:
+
+    void run();
+
+signals:
+
+    void cycle_changed(QString cycle);
+    void alive_changed(quint64 num_alive);
 };
 
 #endif //FUNGERA_FUNGERA_H

@@ -93,17 +93,7 @@ void Fungera::new_child_log() {
 }
 
 void Fungera::run() {
-    static size_t organism_num = 0;
     while (!queue.empty()) {
-        if (organism_num != queue.size()) {
-            if (organism_num < queue.size())
-                new_child_log();
-            else
-                info_log();
-            organism_num = queue.size();
-        } else if (cycle % config.cycle_gap == 0) {
-            info_log();
-        }
         execute_cycle();
     }
 }
@@ -145,6 +135,17 @@ void Fungera::load_from_snapshot(const std::string &path) {
 
 
 void Fungera::execute_cycle() {
+    static size_t organism_num = 0;
+    if (organism_num != queue.size()) {
+        if (organism_num < queue.size())
+            new_child_log();
+        else
+            info_log();
+        organism_num = queue.size();
+        emit alive_changed(organism_num);
+    } else if (cycle % config.cycle_gap == 0) {
+        info_log();
+    }
     if (cycle % config.cycle_gap == 0) {
         if (memory.time_to_kill()) {
             queue.kill_organisms();
@@ -152,11 +153,20 @@ void Fungera::execute_cycle() {
         }
     }
     if (cycle % config.snapshot_rate == 0) {
-        save_snapshot();
+//        save_snapshot();
+    }
+
+    if (queue.get_container().front().commands_hm.nrows != 17) {
+        std::cout << "CATCH ON FIRST ERROR";
+    }
+
+    if (cycle == 2501) {
+        std::cout << "catch";
     }
     queue.cycle_all();
     radiation();
     cycle++;
+    emit cycle_changed(QString::fromStdString(cycle.str()));
 }
 
 Fungera::Fungera() : memory{0, 0, 0}, config{""}, queue{0} {

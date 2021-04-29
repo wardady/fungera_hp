@@ -84,7 +84,7 @@ int main(int argc, char *argv[]) {
     if (vm["gui"].as<bool>()) {
         std::cout << "Starting simulation with GUI" << std::endl;
         QApplication a(argc, argv);
-        MainWindow w;
+        MainWindow w{&simulation};
         w.show();
         return a.exec();
     } else {

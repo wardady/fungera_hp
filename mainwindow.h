@@ -5,6 +5,9 @@
 #include <QPushButton>
 #include <QTableWidget>
 #include <QTextBrowser>
+#include <QThread>
+
+#include"Fungera.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -18,12 +21,16 @@ class MainWindow : public QMainWindow
     QPushButton *toggle_btn, *cycle_btn;
     QTableWidget *simulation_stats;
     QTextBrowser *memory_view;
+    QThread *simulation_thread;
+    Fungera *simulation;
 
 
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(Fungera *simulation,QWidget *parent = nullptr);
     ~MainWindow();
+
+    void setup_gui();
 
 private:
     Ui::MainWindow *ui;
