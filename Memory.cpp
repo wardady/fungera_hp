@@ -52,7 +52,7 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
                             const std::array<size_t, 2> &size) {
     if (instruction_pointer[1] * nrows + size[0] + instruction_pointer[0] >
         memory_block.size())
-        // TODO: if considered error, throw (probably rework to call for every allocate/deallocate call)
+        // TODO: Consider error?
         //throw std::out_of_range("Region is out of bounds of memory block");
         return -1;
     for (size_t i{instruction_pointer[1]};
@@ -63,3 +63,4 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
                 return 1;
     return 0;
 }
+

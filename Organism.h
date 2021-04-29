@@ -4,22 +4,56 @@
 
 #include <cstddef>
 #include <unordered_map>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/unordered_map.hpp>
+#include <boost/serialization/deque.hpp>
+#include <boost/serialization/stack.hpp>
 #include <cstdint>
 #include <stack>
 #include "Memory.h"
 #include "Config.h"
 #include "Queue.h"
+#include "CommandHeatMap.h"
 
 class Queue;
 
 class Organism {
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive &ar, unsigned int version) {
+        ar & BOOST_SERIALIZATION_NVP(errors);
+        ar & BOOST_SERIALIZATION_NVP(reproduction_cycle);
+        ar & BOOST_SERIALIZATION_NVP(number_of_children);
+        ar & BOOST_SERIALIZATION_NVP(ID_seed);
+        ar & BOOST_SERIALIZATION_NVP(instruction_pointer);
+        ar & BOOST_SERIALIZATION_NVP(size);
+        ar & BOOST_SERIALIZATION_NVP(child_entry_point);
+        ar & BOOST_SERIALIZATION_NVP(child_size);
+        ar & BOOST_SERIALIZATION_NVP(begin);
+        ar & BOOST_SERIALIZATION_NVP(delta);
+        ar & BOOST_SERIALIZATION_NVP(registers);
+        ar & BOOST_SERIALIZATION_NVP(stack);
+        ar & BOOST_SERIALIZATION_NVP(children);
+        ar & BOOST_SERIALIZATION_NVP(id);
+        ar & BOOST_SERIALIZATION_NVP(parent_id);
+        ar & BOOST_SERIALIZATION_NVP(commands_hm);
+    }
+
+    Organism();
+
 public:
+
+    Memory *memory;
+    Queue *organism_queue;
+    Config *c;
+
     bool operator<(const Organism &rhs) const;
 
     Organism(std::array<std::size_t, 2> size,
              std::array<std::size_t, 2> entry_point,
              std::array<std::size_t, 2> begin, Memory *memory,
-             Queue *queue, Config *conf);
+             Queue *queue, Config *conf, size_t parent_id = 0);
 
     std::optional<std::list<Organism>::iterator> cycle();
 
@@ -76,7 +110,7 @@ private:
 
     void pop();
 
-    size_t errors, id, reproduction_cycle, number_of_children;
+    size_t errors, reproduction_cycle, number_of_children;
     static size_t ID_seed;
     std::array<size_t, 2> instruction_pointer, size,
             child_entry_point, child_size, begin;
@@ -87,11 +121,11 @@ private:
             {'c', {0, 0}},
             {'d', {0, 0}}
     };
-    Memory *memory;
     std::stack<std::array<size_t, 2>> stack;
 
-    Queue *organism_queue;
-    Config *c;
+    std::vector<size_t> children;
+    size_t id, parent_id;
+    CommandHeatMap commands_hm;
 public:
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,
@@ -122,6 +156,12 @@ public:
             {'S', {{8, 0}, &Organism::push}},
             {'P', {{8, 1}, &Organism::pop}}
     };
+
+    const std::vector<size_t> &get_children() const;
+
+    const size_t &get_parent() const;
+
+    const size_t &get_id() const;
 };
 
 #endif //FUNGERA_ORGANISM_H

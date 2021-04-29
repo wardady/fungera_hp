@@ -3,6 +3,7 @@
 
 #include <functional>
 #include <random>
+#include <iostream>
 #include "Organism.h"
 #include "common.h"
 
@@ -168,11 +169,9 @@ void Organism::pop() {
 
 void Organism::allocate_child() {
     auto requested_size = registers.at(get_next_operand(1));
-    if (requested_size[0] <= 0 || requested_size[1] <= 0) {
-        // TODO: not an error?
-        return;
-    }
-    for (size_t i{0}; i < std::max(c->memory_size[0], c->memory_size[1]); ++i) {
+    if (requested_size[0] <= 0 || requested_size[1] <= 0)
+        throw std::invalid_argument("Requested child size must be > 0");
+    for (size_t i{2}; i < std::max(c->memory_size[0], c->memory_size[1]); ++i) {
         auto is_allocated_region = memory->is_allocated_region(
                 get_shifted_ip(i),
                 requested_size);
@@ -192,10 +191,11 @@ void Organism::split_child() {
     if (child_size[0] != 0 && child_size[1] != 0) {
         number_of_children++;
         reproduction_cycle = 0;
-        organism_queue->push_organism(
-                Organism{child_size, child_entry_point, child_entry_point,
-                         memory, organism_queue,
-                         c});
+        Organism child{child_size, child_entry_point, child_entry_point,
+                       memory, organism_queue,
+                       c, id};
+        children.emplace_back(child.get_id());
+        organism_queue->push_organism(std::move(child));
         child_size = {0, 0};
         child_entry_point = {0, 0};
     }
@@ -204,15 +204,33 @@ void Organism::split_child() {
 Organism::Organism(std::array<std::size_t, 2> size,
                    std::array<std::size_t, 2> entry_point,
                    std::array<std::size_t, 2> begin, Memory *memory,
-                   Queue *queue, Config *conf) :
+                   Queue *queue, Config *conf, size_t parent_id) :
         errors{}, instruction_pointer{entry_point},
         size{size}, memory{memory}, c{conf}, organism_queue(queue),
         id{ID_seed++}, reproduction_cycle{}, number_of_children{0},
-        child_size{}, child_entry_point{}, begin{begin} {
+        child_size{}, child_entry_point{}, begin{begin}, children{},
+        parent_id{parent_id}, commands_hm(size[1], size[0]) {
 }
 
 std::optional<std::list<Organism>::iterator> Organism::cycle() {
     try {
+        if (instruction_pointer[0] < begin[0] ||
+            instruction_pointer[1] < begin[1] ||
+            instruction_pointer[0] > (begin[0] + size[0]) ||
+            instruction_pointer[1] > (begin[1] + size[1])) {
+            commands_hm(commands_hm.nrows, commands_hm.ncollumns)++;
+        } else {
+            std::array<size_t, 2> ip_position{};
+            std::copy(instruction_pointer.begin(),
+                      instruction_pointer.end(),
+                      ip_position.begin());
+            std::transform(ip_position.begin(), ip_position.end(),
+                           ip_position.begin(),
+                           [n = 0, this](size_t num)mutable {
+                               return num - this->begin[n++];
+                           });
+            commands_hm(ip_position[1], ip_position[0])++;
+        }
         (this->*instructions.at(get_next_operand(0)).second)();
     } catch (std::exception &e) {
         errors++;
@@ -247,10 +265,24 @@ noexcept: begin{rhs.begin}, errors{rhs.errors},
           id{rhs.id}, reproduction_cycle{rhs.reproduction_cycle},
           number_of_children{rhs.number_of_children},
           child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point},
-          stack{rhs.stack} {
+          stack{rhs.stack}, parent_id{rhs.parent_id}, children{rhs.children},
+          commands_hm(rhs.commands_hm) {
     this->memory = rhs.memory;
     rhs.memory = nullptr;
 }
+
+const std::vector<size_t> &Organism::get_children() const {
+    return children;
+}
+
+const size_t &Organism::get_parent() const {
+    return parent_id;
+}
+
+const size_t &Organism::get_id() const {
+    return id;
+}
+
 
 Organism &Organism::operator=(Organism &&rhs) noexcept {
     //TODO: Set adequate moved-from object state.
@@ -267,9 +299,18 @@ Organism &Organism::operator=(Organism &&rhs) noexcept {
     child_size = rhs.child_size;
     child_entry_point = rhs.child_entry_point;
     stack = rhs.stack;
+    children = rhs.children;
+    parent_id = rhs.parent_id;
+    commands_hm = rhs.commands_hm;
+
 
     this->memory = rhs.memory;
     rhs.memory = nullptr;
 
     return *this;
 }
+
+Organism::Organism() : commands_hm{0, 0} {
+
+}
+

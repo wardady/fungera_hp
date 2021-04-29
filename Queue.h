@@ -3,14 +3,26 @@
 
 
 #include <list>
+#include <boost/serialization/access.hpp>
+#include <boost/serialization/list.hpp>
 #include "Organism.h"
 
 class Organism;
 
 class Queue {
+    friend class boost::serialization::access;
+
+    template<class Archive>
+    void serialize(Archive &ar, unsigned int version) {
+        ar & BOOST_SERIALIZATION_NVP(organisms);
+        ar & BOOST_SERIALIZATION_NVP(kill_organisms_ratio);
+    }
+
 public:
 
-    bool empty(){
+    double kill_organisms_ratio;
+
+    bool empty() {
         return organisms.empty();
     }
 
@@ -31,9 +43,14 @@ public:
 
     void cycle_all();
 
+    size_t size();
+
+    const std::list<Organism> &get_container() const;
+
+    std::list<Organism> &_get_container();
+
 private:
     std::list<Organism> organisms;
-    const double kill_organisms_ratio;
 
 };
 
