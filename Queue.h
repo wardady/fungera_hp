@@ -36,7 +36,7 @@ public:
 
     void push_organism(Organism &&rhs);
 
-    std::_List_iterator<Organism> remove_organism(Organism &dead);
+    std::list<Organism>::iterator remove_organism(Organism &dead);
 
     explicit Queue(const double kill_organisms_ratio) : kill_organisms_ratio{
             kill_organisms_ratio} {}

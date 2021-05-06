@@ -64,3 +64,10 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
     return 0;
 }
 
+void Memory::set_cell_value(size_t x, size_t y, char value) {
+    if (x > ncollumns || y > nrows)
+        throw std::out_of_range("Index error");
+    memory_block[y * nrows + x].instruction = value;
+    emit memory_cell_changed(x, y, value);
+}
+

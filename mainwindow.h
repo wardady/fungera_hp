@@ -18,19 +18,22 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QWidget *central_window;
-    QPushButton *toggle_btn, *cycle_btn;
+    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn;
     QTableWidget *simulation_stats;
-    QTextBrowser *memory_view;
+    QTableWidget *memory_view;
     QThread *simulation_thread;
     Fungera *simulation;
-
-
+    size_t selected_organism;
 
 public:
     MainWindow(Fungera *simulation,QWidget *parent = nullptr);
     ~MainWindow();
 
     void setup_gui();
+
+protected:
+    const Organism &get_selected_organism();
+    void init_memory_view();
 
 private:
     Ui::MainWindow *ui;

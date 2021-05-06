@@ -9,7 +9,6 @@
 #include <boost/serialization/deque.hpp>
 #include <boost/serialization/stack.hpp>
 #include <cstdint>
-#include <stack>
 #include "Memory.h"
 #include "Config.h"
 #include "Queue.h"
@@ -124,12 +123,29 @@ private:
             {'c', {0, 0}},
             {'d', {0, 0}}
     };
-    std::stack<std::array<size_t, 2>> stack;
+    std::vector<std::array<size_t, 2>> stack;
 
     std::vector<size_t> children;
     size_t id, parent_id;
 
 public:
+    size_t get_errors() const;
+
+    const std::array<size_t, 2> &get_ip() const;
+
+    const std::array<int8_t, 2> &get_delta() const;
+
+    const std::unordered_map<char, std::array<std::size_t, 2>> &
+    get_registers() const;
+
+    const std::array<size_t,2> & get_start();
+
+    const std::array<size_t,2> & get_size();
+
+    const std::vector<std::array<size_t, 2>> &get_stack() const;
+
+    static size_t get_id_seed();
+
     using instruction = void (Organism::*)();
     static const inline std::unordered_map<char,
             std::pair<std::array<uint8_t, 2>, instruction>> instructions{

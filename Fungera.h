@@ -61,6 +61,12 @@ Q_OBJECT
 
     BOOST_SERIALIZATION_SPLIT_MEMBER();
 public:
+    Config config;
+
+    Memory memory;
+
+    std::atomic<int> is_running;
+
     Fungera();
 
     Fungera(const Fungera &) = delete;
@@ -71,15 +77,15 @@ public:
 
     ~Fungera() = default;
 
-    void execute_cycle();
-
     void load_from_snapshot(const std::string &path);
+
+    const std::optional<std::reference_wrapper<Organism>>
+    get_organism(size_t organism_id);
+
+    void execute_cycle();
 
 private:
     mp::checked_uint1024_t cycle;
-    bool is_running;
-    Config config;
-    Memory memory;
     Queue queue;
     size_t purges;
     std::discrete_distribution<int> radiation_dist;
@@ -100,10 +106,15 @@ public slots:
 
     void run();
 
+    void toggle_simulaiton();
+
 signals:
 
     void cycle_changed(QString cycle);
+
     void alive_changed(quint64 num_alive);
+
+    void purges_changed(quint64 num_purges);
 };
 
 #endif //FUNGERA_FUNGERA_H

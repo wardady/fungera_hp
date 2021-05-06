@@ -50,4 +50,3 @@ const std::list<Organism> &Queue::get_container() const {
 std::list<Organism> &Queue::_get_container() {
     return organisms;
 }
-

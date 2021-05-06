@@ -20,7 +20,8 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                           config.memory_size[1],
                                                           config.memory_full_ratio},
                                                    queue{config.kill_organisms_ratio},
-                                                   purges{}, cycle{0} {
+                                                   purges{}, cycle{0},
+                                                   is_running{0} {
     load_initial_genome("../initial.gen",
                         {config.memory_size[0] / 2, config.memory_size[1] / 2});
     geneaology_log.open("genealogy_log.log");
@@ -56,7 +57,7 @@ void Fungera::load_initial_genome(const std::string &filename,
             row++;
             column = address[0];
         } else {
-            memory(column, row).instruction = op_code;
+            memory.set_cell_value(column, row, op_code);
             memory(column, row).free = false;
             column++;
         }
@@ -93,9 +94,15 @@ void Fungera::new_child_log() {
 }
 
 void Fungera::run() {
+    emit cycle_changed(QString::fromStdString(cycle.str()));
     while (!queue.empty()) {
-        execute_cycle();
+        if (is_running.load())
+            execute_cycle();
     }
+}
+
+void Fungera::toggle_simulaiton() {
+    is_running ^= 1;
 }
 
 
@@ -104,12 +111,13 @@ void Fungera::radiation() {
     static std::mt19937 gen{rd()};
 
     for (int i{0}; i < radiation_dist(gen); ++i) {
-        memory(fungera::random(static_cast<size_t>(0), memory.ncollumns),
-               fungera::random(static_cast<size_t>(0),
-                               memory.nrows)).instruction = std::next(
-                Organism::instructions.begin(),
+        memory.set_cell_value(
+                fungera::random(static_cast<size_t>(0), memory.ncollumns),
                 fungera::random(static_cast<size_t>(0),
-                                Organism::instructions.size()))->first;
+                                memory.nrows), std::next(
+                        Organism::instructions.begin(),
+                        fungera::random(static_cast<size_t>(0),
+                                        Organism::instructions.size()))->first);
     }
 }
 
@@ -150,6 +158,7 @@ void Fungera::execute_cycle() {
         if (memory.time_to_kill()) {
             queue.kill_organisms();
             purges++;
+            emit purges_changed(purges);
         }
     }
     if (cycle % config.snapshot_rate == 0) {
@@ -171,5 +180,14 @@ void Fungera::execute_cycle() {
 
 Fungera::Fungera() : memory{0, 0, 0}, config{""}, queue{0} {
 
+}
+
+const std::optional<std::reference_wrapper<Organism>>
+Fungera::get_organism(size_t organism_id) {
+    for (auto &organism: queue._get_container()) {
+        if (organism.get_id() == organism_id)
+            return organism;
+    }
+    return {};
 }
 

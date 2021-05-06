@@ -4,11 +4,14 @@
 #include <vector>
 #include <stdexcept>
 #include <array>
+#include <QObject>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/vector.hpp>
 #include "Cell.h"
 
-class Memory {
+class Memory : public QObject {
+Q_OBJECT
+
     friend class boost::serialization::access;
 
     template<class Archive>
@@ -22,6 +25,8 @@ class Memory {
 public:
 
     size_t ncollumns, nrows;
+
+    void set_cell_value(size_t x, size_t y, char value);
 
     Memory(const Memory &) = delete;
 
@@ -50,6 +55,10 @@ private:
 
     std::vector<Cell> memory_block;
     double memory_full_ratio;
+signals:
+
+    void memory_cell_changed(quint64 x, quint64 y, char value);
+
 };
 
 

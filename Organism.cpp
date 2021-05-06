@@ -137,18 +137,17 @@ void Organism::write_inst() {
 
     if (!(child_size[0] == 0 && child_size[1] == 0)) {
         auto address = registers.at(get_next_operand(1));
-        auto &cell = (*memory)(address[0], address[1]);
         auto instruction_register = registers.at(get_next_operand(2));
         if (prob_dist(gen) < c->mutation_on_reproduction_rate) {
-            cell.instruction = std::next(
+            memory->set_cell_value(address[0], address[1], std::next(
                     Organism::instructions.begin(),
                     fungera::random(static_cast<size_t>(0),
-                                    Organism::instructions.size()))->first;
+                                    Organism::instructions.size()))->first);
         } else {
             for (const auto &inst:instructions) {
                 if (inst.second.first[0] == instruction_register[0] &&
                     inst.second.first[1] == instruction_register[1]) {
-                    cell.instruction = inst.first;
+                    memory->set_cell_value(address[0], address[1], inst.first);
                 }
             }
         }
@@ -157,14 +156,14 @@ void Organism::write_inst() {
 
 void Organism::push() {
     if (stack.size() < c->stack_length)
-        stack.emplace(registers.at(get_next_operand(1)));
+        stack.emplace_back(registers.at(get_next_operand(1)));
 }
 
 void Organism::pop() {
     if (stack.empty())
         throw std::out_of_range("Popping from empty stack!");
-    registers.at(get_next_operand(1)) = stack.top();
-    stack.pop();
+    registers.at(get_next_operand(1)) = stack.back();
+    stack.pop_back();
 }
 
 void Organism::allocate_child() {
@@ -313,4 +312,38 @@ Organism &Organism::operator=(Organism &&rhs) noexcept {
 Organism::Organism() : commands_hm{0, 0} {
 
 }
+
+size_t Organism::get_errors() const {
+    return errors;
+}
+
+const std::array<size_t, 2> &Organism::get_ip() const {
+    return instruction_pointer;
+}
+
+const std::array<int8_t, 2> &Organism::get_delta() const {
+    return delta;
+}
+
+const std::unordered_map<char, std::array<std::size_t, 2>> &
+Organism::get_registers() const {
+    return registers;
+}
+
+const std::vector<std::array<size_t, 2>> &Organism::get_stack() const {
+    return stack;
+}
+
+size_t Organism::get_id_seed() {
+    return ID_seed;
+}
+
+const std::array<size_t, 2> &Organism::get_start() {
+    return begin;
+}
+
+const std::array<size_t, 2> &Organism::get_size() {
+    return size;
+}
+
 
