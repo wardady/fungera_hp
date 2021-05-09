@@ -31,11 +31,15 @@ public:
 
     void setup_gui();
 
+    void scroll_to_current_organism(); // Should be public as a hack -- called before show() does not have desirable effect.
+
 protected:
     const Organism &get_selected_organism();
     void init_memory_view();
+    void fungera_state_to_view(QString cycle);
 
 private:
     Ui::MainWindow *ui;
 };
+
 #endif // MAINWINDOW_H

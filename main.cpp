@@ -85,7 +85,9 @@ int main(int argc, char *argv[]) {
         std::cout << "Starting simulation with GUI" << std::endl;
         QApplication a(argc, argv);
         MainWindow w{&simulation};
+        w.setWindowState(Qt::WindowMaximized);
         w.show();
+        w.scroll_to_current_organism();
         return a.exec();
     } else {
         simulation.run();

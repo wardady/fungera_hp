@@ -143,13 +143,13 @@ void Fungera::load_from_snapshot(const std::string &path) {
 
 
 void Fungera::execute_cycle() {
-    static size_t organism_num = 0;
-    if (organism_num != queue.size()) {
-        if (organism_num < queue.size())
+    static size_t organism_num = 0; // Це виглядає жахливо...
+    if ( organism_num != get_organisms_num() ) {
+        if ( organism_num < get_organisms_num() )
             new_child_log();
         else
-            info_log();
-        organism_num = queue.size();
+            info_log(); // Сюди попадаємо, якщо організм(и) померли?
+        organism_num = get_organisms_num();
         emit alive_changed(organism_num);
     } else if (cycle % config.cycle_gap == 0) {
         info_log();
@@ -184,7 +184,7 @@ Fungera::Fungera() : memory{0, 0, 0}, config{""}, queue{0} {
 
 const std::optional<std::reference_wrapper<Organism>>
 Fungera::get_organism(size_t organism_id) {
-    for (auto &organism: queue._get_container()) {
+    for (auto &organism: queue.get_container()) {
         if (organism.get_id() == organism_id)
             return organism;
     }

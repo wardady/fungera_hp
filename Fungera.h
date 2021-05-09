@@ -44,7 +44,7 @@ Q_OBJECT
         ar & memory;
         ar & queue;
         queue.kill_organisms_ratio = config.kill_organisms_ratio;
-        for (auto &organism:queue._get_container()) {
+        for (auto &organism: queue.get_container()) {
             organism.c = &config;
             organism.memory = &memory;
             organism.organism_queue = &queue;
@@ -81,10 +81,10 @@ public:
     void load_from_snapshot(const std::string &path);
 
     const std::optional<std::reference_wrapper<Organism>>
-    get_organism(size_t organism_id);
+        get_organism(size_t organism_id);
 
     void execute_cycle();
-
+    auto get_organisms_num() const { return queue.size(); }
 private:
     mp::checked_uint1024_t cycle;
     Queue queue;
