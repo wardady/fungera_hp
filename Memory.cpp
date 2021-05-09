@@ -17,7 +17,7 @@ bool Memory::time_to_kill() {
         else
             nbusy++;
     }
-    return (static_cast<double>(nbusy) / nfree) > memory_full_ratio;
+    return (static_cast<double>(nbusy) / static_cast<double>(nfree)) > memory_full_ratio;
 }
 
 void Memory::set_region_allocation(const std::array<size_t, 2> &ip,
@@ -41,10 +41,22 @@ void Memory::deallocate(const std::array<size_t, 2> &instruction_pointer,
     set_region_allocation(instruction_pointer, size, true);
 }
 
-Cell &Memory::operator()(size_t x, size_t y) {
-    if (x > ncollumns || y > nrows)
+Cell& Memory::operator()(size_t x, size_t y) {
+    if (x >= ncollumns || y >= nrows)
         throw std::out_of_range("Index error");
     return memory_block[y * nrows + x];
+}
+
+const Cell& Memory::operator()(size_t x, size_t y) const{
+    if (x >= ncollumns || y >= nrows)
+        throw std::out_of_range("Index error");
+    return memory_block[y * nrows + x];
+}
+Cell& Memory::operator()(const std::array<size_t, 2>& coord){
+    return operator()(coord[0], coord[1]);
+}
+const Cell& Memory::operator()(const std::array<size_t, 2>& coord) const{
+    return operator()(coord[0], coord[1]);
 }
 
 int
@@ -53,7 +65,7 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
     if (instruction_pointer[1] * nrows + size[0] + instruction_pointer[0] >
         memory_block.size())
         // TODO: Consider error?
-        //throw std::out_of_range("Region is out of bounds of memory block");
+        //throw std::out_of_range("Region is out of bounds of memory_ptr_m block");
         return -1;
     for (size_t i{instruction_pointer[1]};
          i < instruction_pointer[1] + size[1]; ++i)

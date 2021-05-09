@@ -35,7 +35,10 @@ public:
     Memory(size_t ncollumns, size_t nrows, double memory_full_ratio);
 
 
-    Cell &operator()(size_t x, size_t y);
+    Cell&       operator()(size_t x, size_t y);
+    const Cell& operator()(size_t x, size_t y) const;
+    Cell&       operator()(const std::array<size_t, 2>& coord);
+    const Cell& operator()(const std::array<size_t, 2>& coord) const;
 
     bool time_to_kill();
 

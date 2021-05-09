@@ -28,8 +28,7 @@ class Config {
 
 public:
     std::array<size_t, 2> memory_size;
-    int random_rate, organism_death_rate, max_num_of_mutations_rad, stack_length;
-    size_t cycle_gap, snapshot_rate, kill_if_no_child;
+    size_t cycle_gap, snapshot_rate, kill_if_no_child, random_rate, organism_death_rate, max_num_of_mutations_rad, stack_length;
     double memory_full_ratio, kill_organisms_ratio, radiation_mutation_rate, mutation_on_reproduction_rate;
 
     explicit Config(const std::string &path);

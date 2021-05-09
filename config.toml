@@ -1,4 +1,4 @@
-memory_size = [5000, 5000]
+memory_size = [1000, 1000]
 random_rate = 5
 organism_death_rate = 100
 max_num_of_mutations_rad = 1

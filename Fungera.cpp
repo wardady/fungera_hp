@@ -21,13 +21,13 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                           config.memory_full_ratio},
                                                    queue{config.kill_organisms_ratio},
                                                    purges{}, cycle{0},
-                                                   is_running{0} {
+                                                   is_running_m{0} {
     load_initial_genome("../initial.gen",
                         {config.memory_size[0] / 2, config.memory_size[1] / 2});
     geneaology_log.open("genealogy_log.log");
     double harmonic = 0, prob_of_rad =
             config.radiation_mutation_rate * 100, prob;
-    for (int i{1}; i <= config.max_num_of_mutations_rad; ++i) {
+    for (size_t i = 1; i <= config.max_num_of_mutations_rad; ++i) {
         harmonic += 1.0 / i;
     }
     prob = prob_of_rad / harmonic;
@@ -82,8 +82,8 @@ void Fungera::new_child_log() {
               << " Number of organisms: " << queue.size() << std::endl;
     geneaology_log << "Cycle: " << cycle << std::endl;
     for (const auto &organism:queue.get_container()) {
-        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl;
-        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl;
+        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl; //-V128
+        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl; //-V128
         geneaology_log << "\t\tChildren: ";
         std::copy(organism.get_children().begin(),
                   organism.get_children().end(),
@@ -96,13 +96,13 @@ void Fungera::new_child_log() {
 void Fungera::run() {
     emit cycle_changed(QString::fromStdString(cycle.str()));
     while (!queue.empty()) {
-        if (is_running.load())
+        if (is_running_m.load())
             execute_cycle();
     }
 }
 
 void Fungera::toggle_simulaiton() {
-    is_running ^= 1;
+    is_running_m ^= 1;
 }
 
 
@@ -143,13 +143,13 @@ void Fungera::load_from_snapshot(const std::string &path) {
 
 
 void Fungera::execute_cycle() {
-    static size_t organism_num = 0;
-    if (organism_num != queue.size()) {
-        if (organism_num < queue.size())
+    static size_t organism_num = 0; // Це виглядає жахливо...
+    if ( organism_num != get_organisms_num() ) {
+        if ( organism_num < get_organisms_num() )
             new_child_log();
         else
-            info_log();
-        organism_num = queue.size();
+            info_log(); // Сюди попадаємо, якщо організм(и) померли?
+        organism_num = get_organisms_num();
         emit alive_changed(organism_num);
     } else if (cycle % config.cycle_gap == 0) {
         info_log();
@@ -165,7 +165,7 @@ void Fungera::execute_cycle() {
 //        save_snapshot();
     }
 
-    if (queue.get_container().front().commands_hm.nrows != 17) {
+    if (queue.get_container().front().commands_hm_m.nrows != 17) {
         std::cout << "CATCH ON FIRST ERROR";
     }
 
@@ -174,7 +174,7 @@ void Fungera::execute_cycle() {
     }
     queue.cycle_all();
     radiation();
-    cycle++;
+    ++cycle;
     emit cycle_changed(QString::fromStdString(cycle.str()));
 }
 
@@ -184,7 +184,7 @@ Fungera::Fungera() : memory{0, 0, 0}, config{""}, queue{0} {
 
 const std::optional<std::reference_wrapper<Organism>>
 Fungera::get_organism(size_t organism_id) {
-    for (auto &organism: queue._get_container()) {
+    for (auto &organism: queue.get_container()) {
         if (organism.get_id() == organism_id)
             return organism;
     }

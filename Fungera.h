@@ -4,6 +4,7 @@
 #include <string>
 #include <random>
 #include <QObject>
+#include <QString>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -37,16 +38,16 @@ Q_OBJECT
     void load(Archive &ar, unsigned int version) {
         ar & cycle;
         ar & config;
-        // TODO: possible ro run with new config (memory size/
+        // TODO: possible ro run with new config (memory_ptr_m size/
         //  random (smth more???) seed must be the same)
 
         ar & memory;
         ar & queue;
         queue.kill_organisms_ratio = config.kill_organisms_ratio;
-        for (auto &organism:queue._get_container()) {
-            organism.c = &config;
-            organism.memory = &memory;
-            organism.organism_queue = &queue;
+        for (auto &organism: queue.get_container()) {
+            organism.conf_ptr_m = &config;
+            organism.memory_ptr_m = &memory;
+            organism.organism_queue_ptr_m = &queue;
         }
 
         ar & purges;
@@ -56,7 +57,7 @@ Q_OBJECT
         ar & distribution_probabilities;
         distribution_saver.str(distribution_probabilities);
         distribution_saver >> radiation_dist;
-        is_running = false;
+        is_running_m = false;
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER();
@@ -65,7 +66,10 @@ public:
 
     Memory memory;
 
-    std::atomic<int> is_running;
+    //! TODO: Implement organisms enumeration/iteration on their list.
+    Queue queue;
+
+    std::atomic<int> is_running_m;
 
     Fungera();
 
@@ -80,14 +84,15 @@ public:
     void load_from_snapshot(const std::string &path);
 
     const std::optional<std::reference_wrapper<Organism>>
-    get_organism(size_t organism_id);
+        get_organism(size_t organism_id);
 
     void execute_cycle();
 
+    auto get_organisms_num() const { return queue.size(); }
+    int is_running() const { return is_running_m; }
 private:
     mp::checked_uint1024_t cycle;
-    Queue queue;
-    size_t purges;
+    size_t purges = 0;
     std::discrete_distribution<int> radiation_dist;
     std::ofstream geneaology_log;
 
@@ -116,5 +121,9 @@ signals:
 
     void purges_changed(quint64 num_purges);
 };
+template <typename T>
+QString reg_to_QString(const std::array<T, 2>& reg_val ){
+    return QString("[%1, %2]").arg( reg_val[0] ).arg( reg_val[1] );
+}
 
 #endif //FUNGERA_FUNGERA_H

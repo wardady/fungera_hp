@@ -9,6 +9,7 @@
 #include <boost/serialization/deque.hpp>
 #include <boost/serialization/stack.hpp>
 #include <cstdint>
+#include <optional>
 #include "Memory.h"
 #include "Config.h"
 #include "Queue.h"
@@ -21,7 +22,7 @@ class Organism {
 
     template<class Archive>
     void serialize(Archive &ar, unsigned int version) {
-        ar & BOOST_SERIALIZATION_NVP(errors);
+        ar & BOOST_SERIALIZATION_NVP(errors_m);
         ar & BOOST_SERIALIZATION_NVP(reproduction_cycle);
         ar & BOOST_SERIALIZATION_NVP(number_of_children);
         ar & BOOST_SERIALIZATION_NVP(ID_seed);
@@ -33,20 +34,15 @@ class Organism {
         ar & BOOST_SERIALIZATION_NVP(delta);
         ar & BOOST_SERIALIZATION_NVP(registers);
         ar & BOOST_SERIALIZATION_NVP(stack);
-        ar & BOOST_SERIALIZATION_NVP(children);
-        ar & BOOST_SERIALIZATION_NVP(id);
-        ar & BOOST_SERIALIZATION_NVP(parent_id);
-        ar & BOOST_SERIALIZATION_NVP(commands_hm);
+        ar & BOOST_SERIALIZATION_NVP(children_id_list_m);
+        ar & BOOST_SERIALIZATION_NVP(id_m);
+        ar & BOOST_SERIALIZATION_NVP(parent_id_m);
+        ar & BOOST_SERIALIZATION_NVP(commands_hm_m);
     }
 
     Organism();
 
 public:
-
-    Memory *memory;
-    Queue *organism_queue;
-    Config *c;
-
     bool operator<(const Organism &rhs) const;
 
     Organism(std::array<std::size_t, 2> size,
@@ -58,7 +54,7 @@ public:
 
     bool operator==(const Organism &rhs) const;
 
-    Organism &operator=(const Organism &rhs) = default;
+    Organism& operator=(const Organism &rhs) = default;
 
     Organism(const Organism &rhs) = default;
 
@@ -68,8 +64,42 @@ public:
 
     ~Organism();
 
-    size_t errors; // TODO: Move to private (here just for debug)
-    CommandHeatMap commands_hm;
+    size_t get_errors() const;
+
+    const std::array<size_t, 2>& get_ip() const;
+
+    const std::array<int8_t, 2>& get_delta() const;
+
+    const std::unordered_map<char, std::array<std::size_t, 2>> &
+    get_registers() const;
+
+    const std::array<size_t,2> & get_start() const;
+
+    const std::array<size_t,2> & get_size() const;
+
+    const std::vector<std::array<size_t, 2>> &get_stack() const;
+
+    static size_t get_id_seed();
+
+    using instruction = void (Organism::*)();
+    static const std::unordered_map<char, std::pair<std::array<uint8_t, 2>, instruction>> instructions;
+
+    const std::vector<size_t>& get_children() const;
+
+    const size_t& get_parent() const;
+
+    const size_t& get_id() const;
+
+    bool is_ip_within() const;
+    bool is_ip_on_border() const;
+
+// private:
+    Memory *memory_ptr_m = nullptr;
+    Queue *organism_queue_ptr_m  = nullptr;
+    Config *conf_ptr_m  = nullptr;
+
+    size_t errors_m = 0; // TODO: Move to private (here just for debug)
+    CommandHeatMap commands_hm_m;
 
 private:
     void nop();
@@ -112,10 +142,13 @@ private:
 
     void pop();
 
-    size_t reproduction_cycle, number_of_children;
+    size_t reproduction_cycle = 0, number_of_children = 0;
     static size_t ID_seed;
-    std::array<size_t, 2> instruction_pointer, size,
-            child_entry_point, child_size, begin;
+    std::array<size_t, 2> instruction_pointer{0, 0};
+    std::array<size_t, 2> size{0, 0};
+    std::array<size_t, 2> child_entry_point{0, 0};
+    std::array<size_t, 2> child_size{0, 0};
+    std::array<size_t, 2> begin{0, 0};
     std::array<int8_t, 2> delta{1, 0};
     std::unordered_map<char, std::array<std::size_t, 2>> registers{
             {'a', {0, 0}},
@@ -125,62 +158,9 @@ private:
     };
     std::vector<std::array<size_t, 2>> stack;
 
-    std::vector<size_t> children;
-    size_t id, parent_id;
-
-public:
-    size_t get_errors() const;
-
-    const std::array<size_t, 2> &get_ip() const;
-
-    const std::array<int8_t, 2> &get_delta() const;
-
-    const std::unordered_map<char, std::array<std::size_t, 2>> &
-    get_registers() const;
-
-    const std::array<size_t,2> & get_start();
-
-    const std::array<size_t,2> & get_size();
-
-    const std::vector<std::array<size_t, 2>> &get_stack() const;
-
-    static size_t get_id_seed();
-
-    using instruction = void (Organism::*)();
-    static const inline std::unordered_map<char,
-            std::pair<std::array<uint8_t, 2>, instruction>> instructions{
-            {'.', {{0, 0}, &Organism::nop}},
-            {':', {{0, 1}, &Organism::nop}},
-            {'a', {{1, 0}, &Organism::nop}},
-            {'b', {{1, 1}, &Organism::nop}},
-            {'c', {{1, 2}, &Organism::nop}},
-            {'d', {{1, 3}, &Organism::nop}},
-            {'x', {{2, 0}, &Organism::nop}},
-            {'y', {{2, 1}, &Organism::nop}},
-            {'^', {{3, 0}, &Organism::move_up}},
-            {'v', {{3, 1}, &Organism::move_down}},
-            {'>', {{3, 2}, &Organism::move_right}},
-            {'<', {{3, 3}, &Organism::move_left}},
-            {'&', {{4, 0}, &Organism::find_pattern}},
-            {'?', {{5, 0}, &Organism::if_not_zero}},
-            {'1', {{6, 0}, &Organism::one}},
-            {'0', {{6, 1}, &Organism::zero}},
-            {'-', {{6, 2}, &Organism::dec}},
-            {'+', {{6, 3}, &Organism::inc}},
-            {'~', {{6, 4}, &Organism::sub}},
-            {'L', {{7, 0}, &Organism::load_inst}},
-            {'W', {{7, 1}, &Organism::write_inst}},
-            {'@', {{7, 2}, &Organism::allocate_child}},
-            {'$', {{7, 3}, &Organism::split_child}},
-            {'S', {{8, 0}, &Organism::push}},
-            {'P', {{8, 1}, &Organism::pop}}
-    };
-
-    const std::vector<size_t> &get_children() const;
-
-    const size_t &get_parent() const;
-
-    const size_t &get_id() const;
+    std::vector<size_t> children_id_list_m;
+    size_t id_m = 0;
+    size_t parent_id_m = 0;
 };
 
 #endif //FUNGERA_ORGANISM_H
