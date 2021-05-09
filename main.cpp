@@ -28,7 +28,7 @@ void convert_snapshots(const std::string &path) {
     if (fs::is_directory(path)) {
         for (const auto &entry : fs::directory_iterator(path))
             if (entry.path().extension() == ".txt")
-                snapshots.emplace_back(entry.path());
+                snapshots.emplace_back(entry.path().string());
     } else {
         if (path.ends_with(".txt"))
             snapshots.emplace_back(path);
@@ -38,11 +38,9 @@ void convert_snapshots(const std::string &path) {
         simulation.load_from_snapshot(snapshot);
         std::cout << "[LOG]: Converting snapshot " << snapshot << " ..."
                   << std::endl;
-        std::stringstream snapshot_file{};
-        snapshot_file << xml_snapshots_dir << fs::path::preferred_separator
-                      << fs::path(snapshot).stem().string()
-                      << ".xml";
-        std::ofstream ofs(snapshot_file.str(), std::ios::trunc);
+        fs::path snapshot_file{xml_snapshots_dir};
+        snapshot_file /= fs::path(snapshot).stem().string() + ".xml";
+        std::ofstream ofs(snapshot_file, std::ios::trunc);
         assert(ofs.good());
         boost::archive::xml_oarchive oa(ofs);
         oa << boost::serialization::make_nvp("Fungera", simulation);
