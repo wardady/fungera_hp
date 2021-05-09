@@ -7,7 +7,7 @@
 #include <QTextBrowser>
 #include <QThread>
 
-#include"Fungera.h"
+#include "Fungera.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }

@@ -4,6 +4,7 @@
 #include <string>
 #include <random>
 #include <QObject>
+#include <QString>
 #include <boost/multiprecision/cpp_int.hpp>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/split_member.hpp>
@@ -116,5 +117,9 @@ signals:
 
     void purges_changed(quint64 num_purges);
 };
+template <typename T>
+QString reg_to_QString(const std::array<T, 2>& reg_val ){
+    return QString("[%1, %2]").arg( reg_val[0] ).arg( reg_val[1] );
+}
 
 #endif //FUNGERA_FUNGERA_H

@@ -110,7 +110,7 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
     connect(simulation, &Fungera::cycle_changed, simulation_stats,
             [this](QString cycle) {
                 std::array<size_t, 2> instrcution_ptr{};
-                simulation_stats->setItem(0, 1, new QTableWidgetItem(cycle));
+                simulation_stats->item(0, 1)->setText(cycle);
                 auto organism = get_selected_organism();
                 for (size_t i{organism.get_start()[1]}; i <
                                                         organism.get_start()[1] +
@@ -123,35 +123,23 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                 }
                 std::copy(organism.get_ip().begin(), organism.get_ip().end(),
                           instrcution_ptr.begin());
-                simulation_stats->setItem(3, 1, new QTableWidgetItem(
-                        QString::number(organism.get_id())));
-                simulation_stats->setItem(4, 1, new QTableWidgetItem(
-                        QString::number(organism.get_errors())));
-                simulation_stats->setItem(5, 1, new QTableWidgetItem(
-                        QString("[%1, %2]").arg(
-                                QString::number(instrcution_ptr[0]),
-                                QString::number(instrcution_ptr[1]))));
-                simulation_stats->setItem(6, 1, new QTableWidgetItem(
-                        QString("[%1, %2]").arg(
-                                QString::number(organism.get_delta()[0]),
-                                QString::number(organism.get_delta()[1]))));
+                simulation_stats->item(3, 1)->setText( QString::number(organism.get_id()) );
+                simulation_stats->item(4, 1)->setText( QString::number(organism.get_errors()) );
+                simulation_stats->item(5, 1)->setText( reg_to_QString(instrcution_ptr) );
+                simulation_stats->item(6, 1)->setText( reg_to_QString(organism.get_delta()) );
                 auto regs = organism.get_registers();
-                for (int i{0}; i < 4; ++i) {
-                    simulation_stats->setItem(7 + i, 1, new QTableWidgetItem(
-                            QString("[%1, %2]").arg(
-                                    QString::number(regs['a' + i][0]),
-                                    QString::number(regs['a' + i][1]))));
+                for (int i = 0; i < regs.size(); ++i) {
+                    simulation_stats->item(7 + i, 1)->setText( reg_to_QString(regs['a' + i]) );
                 }
                 auto stack = organism.get_stack();
-                for (int index{0}; const auto &element:stack) {
-                simulation_stats->setItem(11 + index++, 1, new QTableWidgetItem(
-                        QString("[%1, %2]").arg(
-                                QString::number(element[0]),
-                                QString::number(element[1]))));
-            }
+                for (int index = 0; const auto &element: stack){
+                    simulation_stats->item(11 + index, 1)->setText( reg_to_QString(element) );
+                    ++index;
+                }
                 memory_view->item(instrcution_ptr[1],
                                   instrcution_ptr[0])->setBackground(Qt::red);
             }, Qt::BlockingQueuedConnection);
+
     connect(&(simulation->memory), &Memory::memory_cell_changed,memory_view,[this](quint64 x,quint64 y,char value){
         auto old_color = memory_view->item(y,x)->background();
         auto memory_cell = new QTableWidgetItem(QString(value));
@@ -159,19 +147,19 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
         memory_cell->setBackground(old_color);
         memory_view->setItem(y,x, memory_cell);
     },Qt::BlockingQueuedConnection);
+
     connect(simulation, &Fungera::alive_changed, simulation_stats,
             [this](quint64 num_alive) {
-                simulation_stats->setItem(1, 1, new QTableWidgetItem(
-                        QString::number(num_alive)));
+                simulation_stats->item(1, 1)->setText( QString::number(num_alive) );
             }, Qt::BlockingQueuedConnection);
     connect(simulation, &Fungera::purges_changed, simulation_stats,
             [this](quint64 num_purges) {
-                simulation_stats->setItem(2, 1, new QTableWidgetItem(
-                        QString::number(num_purges)));
+                simulation_stats->item(2, 1)->setText( QString::number(num_purges) );
             }, Qt::BlockingQueuedConnection);
 
     connect(toggle_btn, &QPushButton::clicked, simulation,
-            &Fungera::toggle_simulaiton, Qt::DirectConnection);
+            &Fungera::toggle_simulaiton, Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
+
     connect(cycle_btn, &QPushButton::clicked, simulation, [this]() {
         if (!this->simulation->is_running.load())
             QtConcurrent::run(this->simulation, &Fungera::execute_cycle);
