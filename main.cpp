@@ -76,7 +76,7 @@ int main(int argc, char *argv[]) {
         return 0;
     }
 
-    Fungera simulation{"config.toml"};
+    Fungera simulation{"../config.toml"};
     if (vm.count("load")) {
         simulation.load_from_snapshot(vm["load"].as<std::string>());
     }

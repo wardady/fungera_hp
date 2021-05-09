@@ -35,7 +35,7 @@ set(PROJECT_SOURCES
         common.h
         CommandHeatMap.cpp
         CommandHeatMap.h
-        )
+        Config.cpp)
 if (${QT_VERSION_MAJOR} GREATER_EQUAL 6)
     qt_add_executable(fungera
             ${PROJECT_SOURCES}
