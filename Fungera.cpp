@@ -27,7 +27,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
     geneaology_log.open("genealogy_log.log");
     double harmonic = 0, prob_of_rad =
             config.radiation_mutation_rate * 100, prob;
-    for (int i{1}; i <= config.max_num_of_mutations_rad; ++i) {
+    for (size_t i = 1; i <= config.max_num_of_mutations_rad; ++i) {
         harmonic += 1.0 / i;
     }
     prob = prob_of_rad / harmonic;
@@ -82,8 +82,8 @@ void Fungera::new_child_log() {
               << " Number of organisms: " << queue.size() << std::endl;
     geneaology_log << "Cycle: " << cycle << std::endl;
     for (const auto &organism:queue.get_container()) {
-        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl;
-        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl;
+        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl; //-V128
+        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl; //-V128
         geneaology_log << "\t\tChildren: ";
         std::copy(organism.get_children().begin(),
                   organism.get_children().end(),
@@ -165,7 +165,7 @@ void Fungera::execute_cycle() {
 //        save_snapshot();
     }
 
-    if (queue.get_container().front().commands_hm.nrows != 17) {
+    if (queue.get_container().front().commands_hm_m.nrows != 17) {
         std::cout << "CATCH ON FIRST ERROR";
     }
 
@@ -174,7 +174,7 @@ void Fungera::execute_cycle() {
     }
     queue.cycle_all();
     radiation();
-    cycle++;
+    ++cycle;
     emit cycle_changed(QString::fromStdString(cycle.str()));
 }
 

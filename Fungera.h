@@ -38,16 +38,16 @@ Q_OBJECT
     void load(Archive &ar, unsigned int version) {
         ar & cycle;
         ar & config;
-        // TODO: possible ro run with new config (memory size/
+        // TODO: possible ro run with new config (memory_ptr_m size/
         //  random (smth more???) seed must be the same)
 
         ar & memory;
         ar & queue;
         queue.kill_organisms_ratio = config.kill_organisms_ratio;
         for (auto &organism: queue.get_container()) {
-            organism.c = &config;
-            organism.memory = &memory;
-            organism.organism_queue = &queue;
+            organism.conf_ptr_m = &config;
+            organism.memory_ptr_m = &memory;
+            organism.organism_queue_ptr_m = &queue;
         }
 
         ar & purges;
@@ -92,7 +92,7 @@ public:
     int is_running() const { return is_running_m; }
 private:
     mp::checked_uint1024_t cycle;
-    size_t purges;
+    size_t purges = 0;
     std::discrete_distribution<int> radiation_dist;
     std::ofstream geneaology_log;
 

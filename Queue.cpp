@@ -9,7 +9,7 @@
 
 void Queue::kill_organisms() {
     organisms.sort();
-    auto ratio = static_cast<size_t>(organisms.size() * kill_organisms_ratio);
+    auto ratio = static_cast<size_t>( static_cast<double>(organisms.size()) * kill_organisms_ratio);
     auto threshold_it = organisms.begin();
     std::advance(threshold_it, organisms.size() - ratio);
     organisms.erase(threshold_it, organisms.end());

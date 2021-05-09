@@ -17,7 +17,7 @@ bool Memory::time_to_kill() {
         else
             nbusy++;
     }
-    return (static_cast<double>(nbusy) / nfree) > memory_full_ratio;
+    return (static_cast<double>(nbusy) / static_cast<double>(nfree)) > memory_full_ratio;
 }
 
 void Memory::set_region_allocation(const std::array<size_t, 2> &ip,
@@ -53,7 +53,7 @@ Memory::is_allocated_region(const std::array<size_t, 2> &instruction_pointer,
     if (instruction_pointer[1] * nrows + size[0] + instruction_pointer[0] >
         memory_block.size())
         // TODO: Consider error?
-        //throw std::out_of_range("Region is out of bounds of memory block");
+        //throw std::out_of_range("Region is out of bounds of memory_ptr_m block");
         return -1;
     for (size_t i{instruction_pointer[1]};
          i < instruction_pointer[1] + size[1]; ++i)
