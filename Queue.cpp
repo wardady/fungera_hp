@@ -33,7 +33,7 @@ void Queue::cycle_all() {
     }
 }
 
-size_t Queue::size() {
+size_t Queue::size() const {
     return organisms.size();
 }
 
@@ -47,6 +47,6 @@ const std::list<Organism> &Queue::get_container() const {
     return organisms;
 }
 
-std::list<Organism> &Queue::_get_container() {
+std::list<Organism> &Queue::get_container() {
     return organisms;
 }

@@ -22,7 +22,7 @@ public:
 
     double kill_organisms_ratio;
 
-    bool empty() {
+    bool empty() const {
         return organisms.empty();
     }
 
@@ -43,11 +43,10 @@ public:
 
     void cycle_all();
 
-    size_t size();
+    size_t size() const ;
 
     const std::list<Organism> &get_container() const;
-
-    std::list<Organism> &_get_container();
+    std::list<Organism> &get_container();
 
 private:
     std::list<Organism> organisms;
