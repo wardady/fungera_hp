@@ -21,7 +21,7 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
                                                           config.memory_full_ratio},
                                                    queue{config.kill_organisms_ratio},
                                                    purges{}, cycle{0},
-                                                   is_running{0} {
+                                                   is_running_m{0} {
     load_initial_genome("../initial.gen",
                         {config.memory_size[0] / 2, config.memory_size[1] / 2});
     geneaology_log.open("genealogy_log.log");
@@ -96,13 +96,13 @@ void Fungera::new_child_log() {
 void Fungera::run() {
     emit cycle_changed(QString::fromStdString(cycle.str()));
     while (!queue.empty()) {
-        if (is_running.load())
+        if (is_running_m.load())
             execute_cycle();
     }
 }
 
 void Fungera::toggle_simulaiton() {
-    is_running ^= 1;
+    is_running_m ^= 1;
 }
 
 

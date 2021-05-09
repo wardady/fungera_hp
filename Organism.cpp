@@ -317,11 +317,11 @@ size_t Organism::get_errors() const {
     return errors;
 }
 
-const std::array<size_t, 2> &Organism::get_ip() const {
+const std::array<size_t, 2>& Organism::get_ip() const {
     return instruction_pointer;
 }
 
-const std::array<int8_t, 2> &Organism::get_delta() const {
+const std::array<int8_t, 2>& Organism::get_delta() const {
     return delta;
 }
 
@@ -338,11 +338,11 @@ size_t Organism::get_id_seed() {
     return ID_seed;
 }
 
-const std::array<size_t, 2> &Organism::get_start() {
+const std::array<size_t, 2> &Organism::get_start() const {
     return begin;
 }
 
-const std::array<size_t, 2> &Organism::get_size() {
+const std::array<size_t, 2> &Organism::get_size() const  {
     return size;
 }
 

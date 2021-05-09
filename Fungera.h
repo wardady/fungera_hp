@@ -57,7 +57,7 @@ Q_OBJECT
         ar & distribution_probabilities;
         distribution_saver.str(distribution_probabilities);
         distribution_saver >> radiation_dist;
-        is_running = false;
+        is_running_m = false;
     }
 
     BOOST_SERIALIZATION_SPLIT_MEMBER();
@@ -66,7 +66,10 @@ public:
 
     Memory memory;
 
-    std::atomic<int> is_running;
+    //! TODO: Implement organisms enumeration/iteration on their list.
+    Queue queue;
+
+    std::atomic<int> is_running_m;
 
     Fungera();
 
@@ -84,10 +87,11 @@ public:
         get_organism(size_t organism_id);
 
     void execute_cycle();
+
     auto get_organisms_num() const { return queue.size(); }
+    int is_running() const { return is_running_m; }
 private:
     mp::checked_uint1024_t cycle;
-    Queue queue;
     size_t purges;
     std::discrete_distribution<int> radiation_dist;
     std::ofstream geneaology_log;

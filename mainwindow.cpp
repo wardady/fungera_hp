@@ -68,7 +68,7 @@ void MainWindow::init_memory_view() {
 
 void MainWindow::setup_gui() {
     auto window = new QWidget(this);
-    toggle_btn = new QPushButton("Play", this);
+    toggle_btn = new QPushButton("Run", this);
     cycle_btn = new QPushButton("Cycle", this);
     next_btn = new QPushButton("Next", this);
     prev_btn = new QPushButton("Prev", this);
@@ -87,8 +87,8 @@ void MainWindow::setup_gui() {
     button_layout->addWidget(next_btn);
     button_layout->addWidget(prev_btn);
     control_layout->addLayout(button_layout);
-    main_layout->addLayout(control_layout, 33);
-    main_layout->addWidget(memory_view, 66);
+    main_layout->addLayout(control_layout, 20);
+    main_layout->addWidget(memory_view, 80);
 
     window->setLayout(main_layout);
     setCentralWidget(window);
@@ -155,8 +155,17 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
     connect(toggle_btn, &QPushButton::clicked, simulation,
             &Fungera::toggle_simulaiton, Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
 
+    connect(toggle_btn, &QPushButton::clicked, this,
+            [this](){
+                if(this->simulation->is_running()){
+                    toggle_btn->setText("Pause");
+                }else{
+                    toggle_btn->setText("Run");
+                }
+            }, Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
+
     connect(cycle_btn, &QPushButton::clicked, simulation, [this]() {
-        if (!this->simulation->is_running.load())
+        if (!this->simulation->is_running())
             QtConcurrent::run(this->simulation, &Fungera::execute_cycle);
     }, Qt::DirectConnection);
 
@@ -189,31 +198,44 @@ void MainWindow::scroll_to_current_organism(){
 void MainWindow::fungera_state_to_view(QString cycle){
     std::array<size_t, 2> instruction_ptr{};
     simulation_stats->item(0, 1)->setText(cycle);
-    auto organism = get_selected_organism();
-    for (size_t i{organism.get_start()[1]}; i <
-                                            organism.get_start()[1] +
-                                            organism.get_size()[1]; ++i) {
-        for (size_t j{organism.get_start()[0]}; j <
-                                                organism.get_start()[0] +
-                                                organism.get_size()[0]; ++j) {
-            memory_view->item(i, j)->setBackground(Qt::blue);
-        }
+
+    // Quick and dirty...
+    for(const auto& org: simulation->queue.get_container()){
+        set_organism_color(org, organism_color, organism_border_color);
     }
-    std::copy(organism.get_ip().begin(), organism.get_ip().end(),
-              instruction_ptr.begin());
-    simulation_stats->item(3, 1)->setText( QString::number(organism.get_id()) );
-    simulation_stats->item(4, 1)->setText( QString::number(organism.get_errors()) );
+    auto selected_organism = get_selected_organism();
+    set_organism_color(selected_organism, selected_organism_color, selected_organism_border_color);
+    instruction_ptr = selected_organism.get_ip();
+
+    simulation_stats->item(3, 1)->setText( QString::number(selected_organism.get_id()) );
+    simulation_stats->item(4, 1)->setText( QString::number(selected_organism.get_errors()) );
     simulation_stats->item(5, 1)->setText( reg_to_QString(instruction_ptr) );
-    simulation_stats->item(6, 1)->setText( reg_to_QString(organism.get_delta()) );
-    auto regs = organism.get_registers();
+    simulation_stats->item(6, 1)->setText( reg_to_QString(selected_organism.get_delta()) );
+    auto regs = selected_organism.get_registers();
     for (int i = 0; i < regs.size(); ++i) {
         simulation_stats->item(7 + i, 1)->setText( reg_to_QString(regs['a' + i]) );
     }
-    auto stack = organism.get_stack();
+    auto stack = selected_organism.get_stack();
     for (int index = 0; const auto &element: stack){
         simulation_stats->item(11 + index, 1)->setText( reg_to_QString(element) );
         ++index;
     }
     memory_view->item(instruction_ptr[1],
                       instruction_ptr[0])->setBackground(Qt::red);
+}
+
+void MainWindow::set_organism_color(const Organism& organism, QColor color, QColor border_color){
+    auto beg_row = organism.get_start()[1];
+    auto fin_row = organism.get_start()[1] + organism.get_size()[1];
+    auto beg_col = organism.get_start()[0];
+    auto fin_col = organism.get_start()[0] + organism.get_size()[0];
+
+    for (size_t row = beg_row; row < fin_row; ++row) {
+        for (size_t col = beg_col; col < fin_col; ++col) {
+            if( (row == beg_row || row == fin_row-1) || (col == beg_col || col == fin_col-1) )
+                memory_view->item(row, col)->setBackground(border_color); // Градієнтом зробити, чи що...
+            else
+                memory_view->item(row, col)->setBackground(color);
+        }
+    }
 }

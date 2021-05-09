@@ -131,16 +131,16 @@ private:
 public:
     size_t get_errors() const;
 
-    const std::array<size_t, 2> &get_ip() const;
+    const std::array<size_t, 2>& get_ip() const;
 
-    const std::array<int8_t, 2> &get_delta() const;
+    const std::array<int8_t, 2>& get_delta() const;
 
     const std::unordered_map<char, std::array<std::size_t, 2>> &
     get_registers() const;
 
-    const std::array<size_t,2> & get_start();
+    const std::array<size_t,2> & get_start() const;
 
-    const std::array<size_t,2> & get_size();
+    const std::array<size_t,2> & get_size() const;
 
     const std::vector<std::array<size_t, 2>> &get_stack() const;
 
