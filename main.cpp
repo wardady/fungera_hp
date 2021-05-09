@@ -88,6 +88,7 @@ int main(int argc, char *argv[]) {
         w.scroll_to_current_organism();
         return a.exec();
     } else {
+        simulation.is_running_m.store(1);
         simulation.run();
     }
 

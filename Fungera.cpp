@@ -82,8 +82,10 @@ void Fungera::new_child_log() {
               << " Number of organisms: " << queue.size() << std::endl;
     geneaology_log << "Cycle: " << cycle << std::endl;
     for (const auto &organism:queue.get_container()) {
-        geneaology_log << "\tOrganism: " << organism.get_id() << std::endl; //-V128
-        geneaology_log << "\t\tParent: " << organism.get_parent() << std::endl; //-V128
+        geneaology_log << "\tOrganism: " << organism.get_id()
+                       << std::endl; //-V128
+        geneaology_log << "\t\tParent: " << organism.get_parent()
+                       << std::endl; //-V128
         geneaology_log << "\t\tChildren: ";
         std::copy(organism.get_children().begin(),
                   organism.get_children().end(),
@@ -144,8 +146,8 @@ void Fungera::load_from_snapshot(const std::string &path) {
 
 void Fungera::execute_cycle() {
     static size_t organism_num = 0; // Це виглядає жахливо...
-    if ( organism_num != get_organisms_num() ) {
-        if ( organism_num < get_organisms_num() )
+    if (organism_num != get_organisms_num()) {
+        if (organism_num < get_organisms_num())
             new_child_log();
         else
             info_log(); // Сюди попадаємо, якщо організм(и) померли?

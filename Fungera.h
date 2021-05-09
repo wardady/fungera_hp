@@ -84,12 +84,14 @@ public:
     void load_from_snapshot(const std::string &path);
 
     const std::optional<std::reference_wrapper<Organism>>
-        get_organism(size_t organism_id);
+    get_organism(size_t organism_id);
 
     void execute_cycle();
 
     auto get_organisms_num() const { return queue.size(); }
+
     int is_running() const { return is_running_m; }
+
 private:
     mp::checked_uint1024_t cycle;
     size_t purges = 0;
@@ -121,9 +123,10 @@ signals:
 
     void purges_changed(quint64 num_purges);
 };
-template <typename T>
-QString reg_to_QString(const std::array<T, 2>& reg_val ){
-    return QString("[%1, %2]").arg( reg_val[0] ).arg( reg_val[1] );
+
+template<typename T>
+QString reg_to_QString(const std::array<T, 2> &reg_val) {
+    return QString("[%1, %2]").arg(reg_val[0]).arg(reg_val[1]);
 }
 
 #endif //FUNGERA_FUNGERA_H

@@ -70,16 +70,16 @@ public:
 
     const std::array<int8_t, 2>& get_delta() const;
 
-    const std::unordered_map<char, std::array<std::size_t, 2>> &
+    const std::unordered_map<char, std::array<long long, 2>> &
     get_registers() const;
 
     const std::array<size_t,2> & get_start() const;
 
     const std::array<size_t,2> & get_size() const;
 
-    const std::vector<std::array<size_t, 2>> &get_stack() const;
+    const std::vector<std::array<long long, 2>> &get_stack() const;
 
-    static size_t get_id_seed();
+    static size_t get_total_organism_num();
 
     using instruction = void (Organism::*)();
     static const std::unordered_map<char, std::pair<std::array<uint8_t, 2>, instruction>> instructions;
@@ -150,13 +150,13 @@ private:
     std::array<size_t, 2> child_size{0, 0};
     std::array<size_t, 2> begin{0, 0};
     std::array<int8_t, 2> delta{1, 0};
-    std::unordered_map<char, std::array<std::size_t, 2>> registers{
+    std::unordered_map<char, std::array<long long, 2>> registers{
             {'a', {0, 0}},
             {'b', {0, 0}},
             {'c', {0, 0}},
             {'d', {0, 0}}
     };
-    std::vector<std::array<size_t, 2>> stack;
+    std::vector<std::array<long long, 2>> stack;
 
     std::vector<size_t> children_id_list_m;
     size_t id_m = 0;

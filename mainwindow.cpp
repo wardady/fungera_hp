@@ -100,7 +100,7 @@ const Organism &MainWindow::get_selected_organism() {
     if (org)
         return *org;
 
-    for (size_t i = selected_organism_idx; i < Organism::get_id_seed(); ++i) {
+    for (size_t i = selected_organism_idx; i < Organism::get_total_organism_num(); ++i) {
         org = simulation->get_organism(i);
         if (org) {
             selected_organism_idx = i;
@@ -179,7 +179,7 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
     }, Qt::DirectConnection);
 
     connect(next_btn, &QPushButton::clicked, this, [this]() {
-        if (selected_organism_idx < Organism::get_id_seed())
+        if (selected_organism_idx < Organism::get_total_organism_num())
             selected_organism_idx++;
         scroll_to_current_organism();
         update_organisms_view();
@@ -201,7 +201,7 @@ MainWindow::~MainWindow() {
 }
 
 void MainWindow::scroll_to_current_organism(){
-    auto organism = get_selected_organism();
+    const Organism & organism = get_selected_organism();
     auto organism_start = organism.get_start();
     memory_view->scrollToItem(memory_view->item(organism_start[0], organism_start[1]), //-V107
                               QAbstractItemView::PositionAtCenter );

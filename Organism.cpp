@@ -53,8 +53,11 @@ void Organism::find_pattern() {
             ++j;
         else
             j = 0;
-        if (j == pattern.size())
-            registers.at(reg) = get_shifted_ip(i);
+        if (j == pattern.size()) {
+            auto register_value = get_shifted_ip(i);
+            registers.at(reg) = {static_cast<long long>(register_value[0]),
+                                 static_cast<long long>(register_value[1])};
+        }
     }
 }
 
@@ -146,7 +149,8 @@ void Organism::write_inst() {
             for (const auto &inst:instructions) {
                 if (inst.second.first[0] == instruction_register[0] &&
                     inst.second.first[1] == instruction_register[1]) {
-                    memory_ptr_m->set_cell_value(address[0], address[1], inst.first);
+                    memory_ptr_m->set_cell_value(address[0], address[1],
+                                                 inst.first);
                 }
             }
         }
@@ -154,7 +158,7 @@ void Organism::write_inst() {
 }
 
 void Organism::push() {
-    if (stack.size() < conf_ptr_m->stack_length )
+    if (stack.size() < conf_ptr_m->stack_length)
         stack.emplace_back(registers.at(get_next_operand(1)));
 }
 
@@ -166,22 +170,29 @@ void Organism::pop() {
 }
 
 void Organism::allocate_child() {
-    auto requested_size = registers.at(get_next_operand(1));
+    auto requested = registers.at(get_next_operand(1));
+    std::array<size_t, 2> requested_size = {static_cast<size_t>(requested[0]),
+                                            static_cast<size_t>(requested[1])};
     if (requested_size[0] <= 0 || requested_size[1] <= 0)
         throw std::invalid_argument("Requested child size must be > 0");
-    for (size_t i{2}; i < std::max(conf_ptr_m->memory_size[0], conf_ptr_m->memory_size[1]); ++i) {
+    for (size_t i{2}; i < std::max(conf_ptr_m->memory_size[0],
+                                   conf_ptr_m->memory_size[1]); ++i) {
         auto is_allocated_region = memory_ptr_m->is_allocated_region(
                 get_shifted_ip(i),
                 requested_size);
         if (is_allocated_region == -1)
-            throw std::out_of_range("Requested memory_ptr_m block is out of range!");
+            throw std::out_of_range(
+                    "Requested memory_ptr_m block is out of range!");
         if (is_allocated_region == 0) {
             child_entry_point = get_shifted_ip(i);
-            registers.at(get_next_operand(2)) = child_entry_point;
+            registers.at(get_next_operand(2)) = {
+                    static_cast<long long>(child_entry_point[0]),
+                    static_cast<long long>(child_entry_point[1])};
             break;
         }
     }
-    child_size = registers.at(get_next_operand(1));
+    child_size = {static_cast<size_t>(registers.at(get_next_operand(1))[0]),
+                  static_cast<size_t>(registers.at(get_next_operand(1))[1])};
     memory_ptr_m->allocate(child_entry_point, child_size);
 }
 
@@ -204,7 +215,8 @@ Organism::Organism(std::array<std::size_t, 2> size,
                    std::array<std::size_t, 2> begin, Memory *memory,
                    Queue *queue, Config *conf, size_t parent_id) :
         errors_m{}, instruction_pointer{entry_point},
-        size{size}, memory_ptr_m{memory}, conf_ptr_m{conf}, organism_queue_ptr_m(queue),
+        size{size}, memory_ptr_m{memory}, conf_ptr_m{conf},
+        organism_queue_ptr_m(queue),
         id_m{ID_seed++}, reproduction_cycle{}, number_of_children{0},
         child_size{}, child_entry_point{}, begin{begin}, children_id_list_m{},
         parent_id_m{parent_id}, commands_hm_m(size[1], size[0]) {
@@ -258,12 +270,14 @@ bool Organism::operator==(const Organism &rhs) const {
 Organism::Organism(Organism &&rhs)
 noexcept: begin{rhs.begin}, errors_m{rhs.errors_m},
           instruction_pointer{rhs.instruction_pointer},
-          size{rhs.size}, memory_ptr_m{rhs.memory_ptr_m}, conf_ptr_m{rhs.conf_ptr_m},
+          size{rhs.size}, memory_ptr_m{rhs.memory_ptr_m},
+          conf_ptr_m{rhs.conf_ptr_m},
           organism_queue_ptr_m(rhs.organism_queue_ptr_m),
           id_m{rhs.id_m}, reproduction_cycle{rhs.reproduction_cycle},
           number_of_children{rhs.number_of_children},
           child_size{rhs.child_size}, child_entry_point{rhs.child_entry_point},
-          stack{rhs.stack}, parent_id_m{rhs.parent_id_m}, children_id_list_m{rhs.children_id_list_m},
+          stack{rhs.stack}, parent_id_m{rhs.parent_id_m},
+          children_id_list_m{rhs.children_id_list_m},
           commands_hm_m(rhs.commands_hm_m) {
     this->memory_ptr_m = rhs.memory_ptr_m;
     rhs.memory_ptr_m = nullptr;
@@ -316,24 +330,24 @@ size_t Organism::get_errors() const {
     return errors_m;
 }
 
-const std::array<size_t, 2>& Organism::get_ip() const {
+const std::array<size_t, 2> &Organism::get_ip() const {
     return instruction_pointer;
 }
 
-const std::array<int8_t, 2>& Organism::get_delta() const {
+const std::array<int8_t, 2> &Organism::get_delta() const {
     return delta;
 }
 
-const std::unordered_map<char, std::array<std::size_t, 2>> &
+const std::unordered_map<char, std::array<long long, 2>> &
 Organism::get_registers() const {
     return registers;
 }
 
-const std::vector<std::array<size_t, 2>> &Organism::get_stack() const {
+const std::vector<std::array<long long, 2>> &Organism::get_stack() const {
     return stack;
 }
 
-size_t Organism::get_id_seed() {
+size_t Organism::get_total_organism_num() {
     return ID_seed;
 }
 
@@ -341,33 +355,37 @@ const std::array<size_t, 2> &Organism::get_start() const {
     return begin;
 }
 
-const std::array<size_t, 2> &Organism::get_size() const  {
+const std::array<size_t, 2> &Organism::get_size() const {
     return size;
 }
 
-bool Organism::is_ip_within() const{
+bool Organism::is_ip_within() const {
     const auto beg_row = get_start()[1];
     const auto fin_row = get_start()[1] + get_size()[1];
     const auto beg_col = get_start()[0];
     const auto fin_col = get_start()[0] + get_size()[0];
-    return instruction_pointer[1] >= beg_row && instruction_pointer[1] < fin_row &&
-           instruction_pointer[0] >= beg_col && instruction_pointer[0] < fin_col;
+    return instruction_pointer[1] >= beg_row &&
+           instruction_pointer[1] < fin_row &&
+           instruction_pointer[0] >= beg_col &&
+           instruction_pointer[0] < fin_col;
 }
 
-bool Organism::is_ip_on_border() const{
+bool Organism::is_ip_on_border() const {
     const auto beg_row = get_start()[1];
     const auto fin_row = get_start()[1] + get_size()[1];
     const auto beg_col = get_start()[0];
     const auto fin_col = get_start()[0] + get_size()[0];
 
     return is_ip_within() && (
-            instruction_pointer[1] == beg_row || instruction_pointer[1] == fin_row-1 ||
-            instruction_pointer[0] == beg_col || instruction_pointer[0] == fin_col-1
-                             );
+            instruction_pointer[1] == beg_row ||
+            instruction_pointer[1] == fin_row - 1 ||
+            instruction_pointer[0] == beg_col ||
+            instruction_pointer[0] == fin_col - 1
+    );
 }
 
 const std::unordered_map<char, std::pair<std::array<uint8_t, 2>, Organism::instruction>>
-Organism::instructions{
+        Organism::instructions{
         {'.', {{0, 0}, &Organism::nop}},
         {':', {{0, 1}, &Organism::nop}},
         {'a', {{1, 0}, &Organism::nop}},
