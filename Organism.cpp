@@ -33,8 +33,7 @@ void Organism::move_left() {
 }
 
 char Organism::get_next_operand(size_t offset) {
-    return std::apply([this](auto x, auto y) { return (*memory_ptr_m)(x, y); },
-                      get_shifted_ip(offset)).instruction;
+    return (*memory_ptr_m)(get_shifted_ip(offset)).instruction;
 }
 
 void Organism::find_pattern() {

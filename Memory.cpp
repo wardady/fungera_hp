@@ -41,10 +41,22 @@ void Memory::deallocate(const std::array<size_t, 2> &instruction_pointer,
     set_region_allocation(instruction_pointer, size, true);
 }
 
-Cell &Memory::operator()(size_t x, size_t y) {
-    if (x > ncollumns || y > nrows)
+Cell& Memory::operator()(size_t x, size_t y) {
+    if (x >= ncollumns || y >= nrows)
         throw std::out_of_range("Index error");
     return memory_block[y * nrows + x];
+}
+
+const Cell& Memory::operator()(size_t x, size_t y) const{
+    if (x >= ncollumns || y >= nrows)
+        throw std::out_of_range("Index error");
+    return memory_block[y * nrows + x];
+}
+Cell& Memory::operator()(const std::array<size_t, 2>& coord){
+    return operator()(coord[0], coord[1]);
+}
+const Cell& Memory::operator()(const std::array<size_t, 2>& coord) const{
+    return operator()(coord[0], coord[1]);
 }
 
 int
