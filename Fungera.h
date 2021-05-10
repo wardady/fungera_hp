@@ -122,6 +122,8 @@ signals:
     void alive_changed(quint64 num_alive);
 
     void purges_changed(quint64 num_purges);
+
+    void alive_ids(QVector<size_t> organisms);
 };
 
 template<typename T>

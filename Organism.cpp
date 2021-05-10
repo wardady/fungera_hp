@@ -69,7 +69,6 @@ std::array<size_t, 2> Organism::get_shifted_ip(size_t offset) {
 void Organism::if_not_zero() {
     auto instr = get_next_operand(1);
     if (instr == 'x' || instr == 'y') {
-        // 3 if true 2 if false. TODO: if_not_zero?
         instruction_pointer = get_shifted_ip(2 +
                                              static_cast<bool>(registers.at(
                                                      get_next_operand(

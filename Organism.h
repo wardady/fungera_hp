@@ -54,7 +54,7 @@ public:
 
     bool operator==(const Organism &rhs) const;
 
-    Organism& operator=(const Organism &rhs) = default;
+    Organism &operator=(const Organism &rhs) = default;
 
     Organism(const Organism &rhs) = default;
 
@@ -66,16 +66,16 @@ public:
 
     size_t get_errors() const;
 
-    const std::array<size_t, 2>& get_ip() const;
+    const std::array<size_t, 2> &get_ip() const;
 
-    const std::array<int8_t, 2>& get_delta() const;
+    const std::array<int8_t, 2> &get_delta() const;
 
     const std::unordered_map<char, std::array<long long, 2>> &
     get_registers() const;
 
-    const std::array<size_t,2> & get_start() const;
+    const std::array<size_t, 2> &get_start() const;
 
-    const std::array<size_t,2> & get_size() const;
+    const std::array<size_t, 2> &get_size() const;
 
     const std::vector<std::array<long long, 2>> &get_stack() const;
 
@@ -84,19 +84,20 @@ public:
     using instruction = void (Organism::*)();
     static const std::unordered_map<char, std::pair<std::array<uint8_t, 2>, instruction>> instructions;
 
-    const std::vector<size_t>& get_children() const;
+    const std::vector<size_t> &get_children() const;
 
-    const size_t& get_parent() const;
+    const size_t &get_parent() const;
 
-    const size_t& get_id() const;
+    const size_t &get_id() const;
 
     bool is_ip_within() const;
+
     bool is_ip_on_border() const;
 
 // private:
     Memory *memory_ptr_m = nullptr;
-    Queue *organism_queue_ptr_m  = nullptr;
-    Config *conf_ptr_m  = nullptr;
+    Queue *organism_queue_ptr_m = nullptr;
+    Config *conf_ptr_m = nullptr;
 
     size_t errors_m = 0; // TODO: Move to private (here just for debug)
     CommandHeatMap commands_hm_m;

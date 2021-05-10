@@ -7,6 +7,7 @@
 #include <QTextBrowser>
 #include <QThread>
 #include <QColor>
+#include <QComboBox>
 
 #include "Fungera.h"
 
@@ -24,6 +25,7 @@ class MainWindow : public QMainWindow
     QTableWidget *simulation_stats;
     QTableWidget *memory_view;
     QThread *simulation_thread;
+    QComboBox *organism_selector;
     Fungera *simulation;
     size_t selected_organism_idx;
 

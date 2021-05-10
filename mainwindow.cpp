@@ -37,16 +37,18 @@ void MainWindow::init_memory_view() {
     memory_view->verticalHeader()->setSectionResizeMode(QHeaderView::Fixed);
     memory_view->setShowGrid(false);
 
-    //! Халтура -- потрібно власну модель зробити, але краще так, ніж обманювати, що нумерація з нуля
+    //! TODO: implement custom data model
     QStringList headerLabels;
-    for (int i = 0; i < memory_view->rowCount(); ++i){
+    for (int i = 0; i < memory_view->rowCount(); ++i) {
         headerLabels << QString::number(i);
     }
     memory_view->setVerticalHeaderLabels(headerLabels);
     headerLabels.clear();
-    for (int i = 0; i < memory_view->rowCount(); ++i){
+    for (int i = 0; i < memory_view->rowCount(); ++i) {
         //! TODO: refactor using QTableWidgetItem and inheriting QLabel, smth. like https://programmersought.com/article/13925713867/
-        headerLabels << QString::number(i).split("", QString::SkipEmptyParts).join("\n");
+        headerLabels
+                << QString::number(i).split("", QString::SkipEmptyParts).join(
+                        "\n");
         // Future Qt uses Qt::SkipEmptyParts instead of QString::SkipEmptyParts
     }
     memory_view->setHorizontalHeaderLabels(headerLabels);
@@ -75,7 +77,9 @@ void MainWindow::setup_gui() {
     prev_btn = new QPushButton("Prev", this);
     simulation_stats = new QTableWidget(this);
     memory_view = new QTableWidget(this);
+    organism_selector = new QComboBox(this);
 
+    organism_selector->addItem("0");
     setup_stats_table(simulation_stats, simulation->config.stack_length);
     init_memory_view();
 
@@ -83,6 +87,7 @@ void MainWindow::setup_gui() {
     auto control_layout = new QVBoxLayout;
     auto button_layout = new QHBoxLayout;
     control_layout->addWidget(simulation_stats);
+    control_layout->addWidget(organism_selector);
     button_layout->addWidget(toggle_btn);
     button_layout->addWidget(cycle_btn);
     button_layout->addWidget(next_btn);
@@ -100,7 +105,8 @@ const Organism &MainWindow::get_selected_organism() {
     if (org)
         return *org;
 
-    for (size_t i = selected_organism_idx; i < Organism::get_total_organism_num(); ++i) {
+    for (size_t i = selected_organism_idx;
+         i < Organism::get_total_organism_num(); ++i) {
         org = simulation->get_organism(i);
         if (org) {
             selected_organism_idx = i;
@@ -109,7 +115,7 @@ const Organism &MainWindow::get_selected_organism() {
     }
 
     for (size_t i = selected_organism_idx; i > 0; --i) {
-        org = simulation->get_organism(i-1);
+        org = simulation->get_organism(i - 1);
         if (org) {
             selected_organism_idx = i;
             return *org;
@@ -130,48 +136,54 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
     connect(simulation_thread, &QThread::started, simulation, &Fungera::run);
 
     prev_ip_ptr_m = get_selected_organism().get_ip();
-    //! Купу коду лише через одну дрібну красивість :=)
-    if(get_selected_organism().is_ip_on_border())
+    if (get_selected_organism().is_ip_on_border())
         prev_ip_brush_m = QBrush{selected_organism_border_color};
     else if (get_selected_organism().is_ip_within())
         prev_ip_brush_m = QBrush{selected_organism_color};
     else
         prev_ip_brush_m = QBrush{nonorganism_color};
     fungera_state_to_view("0");
-    connect(simulation, &Fungera::cycle_changed, this, &MainWindow::fungera_state_to_view,
+    connect(simulation, &Fungera::cycle_changed, this,
+            &MainWindow::fungera_state_to_view,
             Qt::BlockingQueuedConnection);
 
-    connect(&(simulation->memory), &Memory::memory_cell_changed, memory_view, [this](quint64 x, quint64 y, char value){
-        auto changed_cell = memory_view->item(y,x);
-        changed_cell->setText(QString(value));
-        //auto old_color = memory_view->item(y,x)->background();
-        //auto memory_cell = new QTableWidgetItem(QString(value));
-        //memory_cell->setTextAlignment(Qt::AlignCenter);
-        //memory_cell->setBackground(old_color);
-        //memory_view->setItem(y,x, memory_cell);
-    },Qt::BlockingQueuedConnection);
+    connect(&(simulation->memory), &Memory::memory_cell_changed, memory_view,
+            [this](quint64 x, quint64 y, char value) {
+                auto changed_cell = memory_view->item(y, x);
+                changed_cell->setText(QString(value));
+                //auto old_color = memory_view->item(y,x)->background();
+                //auto memory_cell = new QTableWidgetItem(QString(value));
+                //memory_cell->setTextAlignment(Qt::AlignCenter);
+                //memory_cell->setBackground(old_color);
+                //memory_view->setItem(y,x, memory_cell);
+            }, Qt::BlockingQueuedConnection);
 
-    simulation_stats->item(1, 1)->setText( QString::number(simulation->get_organisms_num()) );
+    simulation_stats->item(1, 1)->setText(
+            QString::number(simulation->get_organisms_num()));
     connect(simulation, &Fungera::alive_changed, simulation_stats,
             [this](quint64 num_alive) {
-                simulation_stats->item(1, 1)->setText( QString::number(num_alive) );
+                simulation_stats->item(1, 1)->setText(
+                        QString::number(num_alive));
             }, Qt::BlockingQueuedConnection);
     connect(simulation, &Fungera::purges_changed, simulation_stats,
             [this](quint64 num_purges) {
-                simulation_stats->item(2, 1)->setText( QString::number(num_purges) );
+                simulation_stats->item(2, 1)->setText(
+                        QString::number(num_purges));
             }, Qt::BlockingQueuedConnection);
 
     connect(toggle_btn, &QPushButton::clicked, simulation,
-            &Fungera::toggle_simulaiton, Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
+            &Fungera::toggle_simulaiton,
+            Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
 
     connect(toggle_btn, &QPushButton::clicked, this,
-            [this](){
-                if(this->simulation->is_running()){
+            [this]() {
+                if (this->simulation->is_running()) {
                     toggle_btn->setText("Pause");
-                }else{
+                } else {
                     toggle_btn->setText("Run");
                 }
-            }, Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
+            },
+            Qt::DirectConnection); //! Важливо, що маніпулює лише atomic<int>.
 
     connect(cycle_btn, &QPushButton::clicked, simulation, [this]() {
         if (!this->simulation->is_running())
@@ -190,6 +202,20 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
         scroll_to_current_organism();
         update_organisms_view();
     });
+    connect(simulation, &Fungera::alive_ids, organism_selector,
+            [this](QVector<size_t> organisms) {
+                std::sort(organisms.begin(), organisms.end());
+                organism_selector->clear();
+                for (const auto &id:organisms) {
+                    organism_selector->addItem(QString::number(id));
+                }
+            }, Qt::BlockingQueuedConnection);
+    connect(organism_selector, &QComboBox::currentTextChanged, this,
+            [this](const QString &text) {
+                selected_organism_idx = text.toULongLong();
+                update_organisms_view();
+                scroll_to_current_organism();
+            }, Qt::DirectConnection);
     update_organisms_view();
     scroll_to_current_organism();
 
@@ -200,50 +226,60 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::scroll_to_current_organism(){
-    const Organism & organism = get_selected_organism();
+void MainWindow::scroll_to_current_organism() {
+    const Organism &organism = get_selected_organism();
     auto organism_start = organism.get_start();
-    memory_view->scrollToItem(memory_view->item(organism_start[0], organism_start[1]), //-V107
-                              QAbstractItemView::PositionAtCenter );
+    memory_view->scrollToItem(
+            memory_view->item(organism_start[0], organism_start[1]), //-V107
+            QAbstractItemView::PositionAtCenter);
 }
 
-void MainWindow::fungera_state_to_view(QString cycle){
+void MainWindow::fungera_state_to_view(QString cycle) {
     simulation_stats->item(0, 1)->setText(cycle);
-    auto& selected_organism = get_selected_organism();
+    auto &selected_organism = get_selected_organism();
 
     std::array<size_t, 2> instruction_ptr = selected_organism.get_ip();
 
-    simulation_stats->item(3, 1)->setText( QString::number(selected_organism.get_id()) );
-    simulation_stats->item(4, 1)->setText( QString::number(selected_organism.get_errors()) );
-    simulation_stats->item(5, 1)->setText( reg_to_QString(instruction_ptr) );
-    simulation_stats->item(6, 1)->setText( reg_to_QString(selected_organism.get_delta()) );
+    simulation_stats->item(3, 1)->setText(
+            QString::number(selected_organism.get_id()));
+    simulation_stats->item(4, 1)->setText(
+            QString::number(selected_organism.get_errors()));
+    simulation_stats->item(5, 1)->setText(reg_to_QString(instruction_ptr));
+    simulation_stats->item(6, 1)->setText(
+            reg_to_QString(selected_organism.get_delta()));
     auto regs = selected_organism.get_registers();
     for (size_t i = 0; i < regs.size(); ++i) {
-        simulation_stats->item(7 + i, 1)->setText( reg_to_QString(regs['a' + i]) );
+        simulation_stats->item(7 + i, 1)->setText(
+                reg_to_QString(regs['a' + i]));
     }
-    for ( int index = 0; const auto &element: selected_organism.get_stack() ){
-        simulation_stats->item(11 + index, 1)->setText( reg_to_QString(element) );
+    for (int index = 0; const auto &element: selected_organism.get_stack()) {
+        simulation_stats->item(11 + index, 1)->setText(reg_to_QString(element));
         ++index;
     }
 
-    memory_view->item(prev_ip_ptr_m[1], prev_ip_ptr_m[0])->setBackground(prev_ip_brush_m);
-    prev_ip_brush_m = memory_view->item(instruction_ptr[1], instruction_ptr[0])->background();
+    memory_view->item(prev_ip_ptr_m[1], prev_ip_ptr_m[0])->setBackground(
+            prev_ip_brush_m);
+    prev_ip_brush_m = memory_view->item(instruction_ptr[1],
+                                        instruction_ptr[0])->background();
     memory_view->item(instruction_ptr[1],
                       instruction_ptr[0])->setBackground(Qt::red);
     prev_ip_ptr_m = instruction_ptr;
 
 }
 
-void MainWindow::update_organisms_view(){
+void MainWindow::update_organisms_view() {
     // Quick and dirty...
-    for(const auto& org: simulation->queue.get_container()){
+    for (const auto &org: simulation->queue.get_container()) {
         set_organism_color(org, organism_color, organism_border_color);
     }
-    auto& selected_organism = get_selected_organism();
-    set_organism_color(selected_organism, selected_organism_color, selected_organism_border_color);
+    auto &selected_organism = get_selected_organism();
+    set_organism_color(selected_organism, selected_organism_color,
+                       selected_organism_border_color);
 }
 
-void MainWindow::set_organism_color(const Organism& organism, const QColor& color, const QColor& border_color){
+void
+MainWindow::set_organism_color(const Organism &organism, const QColor &color,
+                               const QColor &border_color) {
     auto beg_row = organism.get_start()[1];
     auto fin_row = organism.get_start()[1] + organism.get_size()[1];
     auto beg_col = organism.get_start()[0];
@@ -251,8 +287,10 @@ void MainWindow::set_organism_color(const Organism& organism, const QColor& colo
 
     for (size_t row = beg_row; row < fin_row; ++row) {
         for (size_t col = beg_col; col < fin_col; ++col) {
-            if( (row == beg_row || row == fin_row-1) || (col == beg_col || col == fin_col-1) )
-                memory_view->item(row, col)->setBackground(border_color); // Градієнтом зробити, чи що... //-V107
+            if ((row == beg_row || row == fin_row - 1) ||
+                (col == beg_col || col == fin_col - 1))
+                memory_view->item(row, col)->setBackground(
+                        border_color); // Градієнтом зробити, чи що... //-V107
             else
                 memory_view->item(row, col)->setBackground(color); //-V107
         }

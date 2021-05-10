@@ -145,12 +145,18 @@ void Fungera::load_from_snapshot(const std::string &path) {
 
 
 void Fungera::execute_cycle() {
-    static size_t organism_num = 0; // Це виглядає жахливо...
+    static size_t organism_num = 0;
     if (organism_num != get_organisms_num()) {
+        QVector<size_t> organisms;
+        organisms.reserve(queue.size());
+        for (const auto &org:queue.get_container()) {
+            organisms.push_back(org.get_id());
+        }
+        emit alive_ids(organisms);
         if (organism_num < get_organisms_num())
             new_child_log();
         else
-            info_log(); // Сюди попадаємо, якщо організм(и) померли?
+            info_log();
         organism_num = get_organisms_num();
         emit alive_changed(organism_num);
     } else if (cycle % config.cycle_gap == 0) {
@@ -164,15 +170,7 @@ void Fungera::execute_cycle() {
         }
     }
     if (cycle % config.snapshot_rate == 0) {
-//        save_snapshot();
-    }
-
-    if (queue.get_container().front().commands_hm_m.nrows != 17) {
-        std::cout << "CATCH ON FIRST ERROR";
-    }
-
-    if (cycle == 2501) {
-        std::cout << "catch";
+//        save_snapshot(); //! TODO: uncomment
     }
     queue.cycle_all();
     radiation();
