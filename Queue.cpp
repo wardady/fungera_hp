@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include "Organism.h"
 
 void Queue::kill_organisms() {
     organisms.sort();

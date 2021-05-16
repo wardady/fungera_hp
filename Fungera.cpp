@@ -10,6 +10,7 @@
 #include <boost/archive/text_oarchive.hpp>
 #include <boost/archive/text_iarchive.hpp>
 #include <boost/multiprecision/cpp_int/serialize.hpp>
+#include <QVector> // TODO: Сумнівна річ -- воно лише заради emit.
 
 #include "common.h"
 
@@ -46,30 +47,30 @@ Fungera::Fungera(const std::string &config_path) : config{config_path},
 }
 
 void Fungera::load_initial_genome(const std::string &filename,
-                                  const std::array<size_t, 2> &address) {
+                                  const std::array<size_t, 2> &origin_address) {
+    //TODO: allow other initial IP
     std::ifstream infile{filename};
     std::string data((std::istreambuf_iterator<char>(infile)),
                      std::istreambuf_iterator<char>());
-    size_t row = address[1];
-    size_t column = address[0];
+    size_t row = origin_address[1];
+    size_t column = origin_address[0];
     for (const auto &op_code:data) {
         if (op_code == '\n') {
             row++;
-            column = address[0];
+            column = origin_address[0];
         } else {
             memory.set_cell_value(column, row, op_code);
             memory(column, row).free = false;
             column++;
         }
     }
-
-    queue.push_organism(Organism(
-            std::array<size_t, 2>{data.find('\n'),
-                                  static_cast<size_t>(std::count(data.begin(),
-                                                                 data.end(),
-                                                                 '\n'))},
-            address, address,
-            &memory, &queue, &config));
+    auto org_size = std::array<size_t, 2>{data.find('\n'),
+                                          static_cast<size_t>(std::count(data.begin(),
+                                                                         data.end(),
+                                                                         '\n'))};
+    queue.push_organism(
+            Organism(org_size, origin_address, origin_address,
+                        &memory, &queue, &config));
 }
 
 void Fungera::info_log() {
@@ -87,8 +88,8 @@ void Fungera::new_child_log() {
         geneaology_log << "\t\tParent: " << organism.get_parent()
                        << std::endl; //-V128
         geneaology_log << "\t\tChildren: ";
-        std::copy(organism.get_children().begin(),
-                  organism.get_children().end(),
+        std::copy(organism.get_children_id_list().begin(),
+                  organism.get_children_id_list().end(),
                   std::ostream_iterator<size_t>(geneaology_log, ", "));
         geneaology_log << std::endl;
     }
@@ -114,11 +115,11 @@ void Fungera::radiation() {
 
     for (int i{0}; i < radiation_dist(gen); ++i) {
         memory.set_cell_value(
-                fungera::random(static_cast<size_t>(0), memory.ncollumns),
-                fungera::random(static_cast<size_t>(0),
+                config.random(static_cast<size_t>(0), memory.ncollumns),
+                config.random(static_cast<size_t>(0),
                                 memory.nrows), std::next(
                         Organism::instructions.begin(),
-                        fungera::random(static_cast<size_t>(0),
+                        config.random(static_cast<size_t>(0),
                                         Organism::instructions.size()))->first);
     }
 }

@@ -3,6 +3,7 @@
 
 #include <string>
 #include <array>
+#include <random>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/array.hpp>
 
@@ -34,6 +35,25 @@ public:
     explicit Config(const std::string &path);
 
     Config();
+
+    //! TODO: Save and restore seed!
+    std::random_device rd;
+    mutable std::mt19937 gen{rd()};
+    mutable std::uniform_real_distribution<double> uni_d_0_1{0, 1}; // {0, std::nextafter(1, 2)}?
+
+    bool has_mutated_on_copy() const {
+        if( mutation_on_reproduction_rate == 0.0 )
+            return false; // Оптимізація -- рандомний генератор повільний. Тут порівнювати fp == 0.0 -- коректно.
+        return uni_d_0_1(gen) < mutation_on_reproduction_rate;
+    }
+
+    template<typename T>
+    T random(T from, T to) {
+        // Generates random number from range [from,to)
+        static std::uniform_int_distribution<T> ud(from, to);
+        return ud(gen);
+    }
+
 
 };
 

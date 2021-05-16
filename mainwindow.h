@@ -49,6 +49,7 @@ protected:
     QColor organism_color{Qt::gray};
     QColor organism_border_color { Qt::darkGray };
     QColor nonorganism_color{Qt::white};
+    QColor nonorganism_allocated_color{Qt::lightGray};
 private:
     Ui::MainWindow *ui;
 

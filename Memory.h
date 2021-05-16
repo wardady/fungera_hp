@@ -60,7 +60,7 @@ private:
     double memory_full_ratio;
 signals:
 
-    void memory_cell_changed(quint64 x, quint64 y, char value);
+    void memory_cell_changed(quint64 x, quint64 y, char value, bool free);
 
 };
 

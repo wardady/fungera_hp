@@ -11,6 +11,7 @@
 
 #include "Memory.h"
 #include "Queue.h"
+#include "Organism.h"
 #include "Config.h"
 #include <fstream>
 

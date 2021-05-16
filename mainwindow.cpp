@@ -46,9 +46,7 @@ void MainWindow::init_memory_view() {
     headerLabels.clear();
     for (int i = 0; i < memory_view->rowCount(); ++i) {
         //! TODO: refactor using QTableWidgetItem and inheriting QLabel, smth. like https://programmersought.com/article/13925713867/
-        headerLabels
-                << QString::number(i).split("", QString::SkipEmptyParts).join(
-                        "\n");
+        headerLabels << QString::number(i).split("", QString::SkipEmptyParts).join("\n");
         // Future Qt uses Qt::SkipEmptyParts instead of QString::SkipEmptyParts
     }
     memory_view->setHorizontalHeaderLabels(headerLabels);
@@ -105,8 +103,7 @@ const Organism &MainWindow::get_selected_organism() {
     if (org)
         return *org;
 
-    for (size_t i = selected_organism_idx;
-         i < Organism::get_total_organism_num(); ++i) {
+    for (size_t i = selected_organism_idx; i < Organism::get_total_organism_num(); ++i) {
         org = simulation->get_organism(i);
         if (org) {
             selected_organism_idx = i;
@@ -115,7 +112,7 @@ const Organism &MainWindow::get_selected_organism() {
     }
 
     for (size_t i = selected_organism_idx; i > 0; --i) {
-        org = simulation->get_organism(i - 1);
+        org = simulation->get_organism(i-1);
         if (org) {
             selected_organism_idx = i;
             return *org;
@@ -136,6 +133,7 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
     connect(simulation_thread, &QThread::started, simulation, &Fungera::run);
 
     prev_ip_ptr_m = get_selected_organism().get_ip();
+    //! Купу коду лише через одну дрібну красивість :=) TODO: Abstract away.
     if (get_selected_organism().is_ip_on_border())
         prev_ip_brush_m = QBrush{selected_organism_border_color};
     else if (get_selected_organism().is_ip_within())
@@ -148,15 +146,24 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
             Qt::BlockingQueuedConnection);
 
     connect(&(simulation->memory), &Memory::memory_cell_changed, memory_view,
-            [this](quint64 x, quint64 y, char value) {
+             [this](quint64 x, quint64 y, char value, bool free) {
                 auto changed_cell = memory_view->item(y, x);
+                auto brush = changed_cell->background();
+                if(free){
+                    brush.setStyle(Qt::SolidPattern);
+                    brush.setColor(nonorganism_color);
+                }else{
+                    brush.setStyle(Qt::CrossPattern);
+                    brush.setColor(nonorganism_allocated_color);
+                }
+                // changed_cell->setBackground(brush); // TODO: Implement efficently
                 changed_cell->setText(QString(value));
                 //auto old_color = memory_view->item(y,x)->background();
                 //auto memory_cell = new QTableWidgetItem(QString(value));
                 //memory_cell->setTextAlignment(Qt::AlignCenter);
                 //memory_cell->setBackground(old_color);
                 //memory_view->setItem(y,x, memory_cell);
-            }, Qt::BlockingQueuedConnection);
+            },Qt::QueuedConnection); // Qt::BlockingQueuedConnection does not work here because of free cells update
 
     simulation_stats->item(1, 1)->setText(
             QString::number(simulation->get_organisms_num()));
@@ -226,8 +233,8 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::scroll_to_current_organism() {
-    const Organism &organism = get_selected_organism();
+void MainWindow::scroll_to_current_organism(){
+    const auto& organism = get_selected_organism();
     auto organism_start = organism.get_start();
     memory_view->scrollToItem(
             memory_view->item(organism_start[0], organism_start[1]), //-V107
@@ -236,7 +243,7 @@ void MainWindow::scroll_to_current_organism() {
 
 void MainWindow::fungera_state_to_view(QString cycle) {
     simulation_stats->item(0, 1)->setText(cycle);
-    auto &selected_organism = get_selected_organism();
+    auto& selected_organism = get_selected_organism();
 
     std::array<size_t, 2> instruction_ptr = selected_organism.get_ip();
 
@@ -250,7 +257,7 @@ void MainWindow::fungera_state_to_view(QString cycle) {
     auto regs = selected_organism.get_registers();
     for (size_t i = 0; i < regs.size(); ++i) {
         simulation_stats->item(7 + i, 1)->setText(
-                reg_to_QString(regs['a' + i]));
+                reg_to_QString(regs.at_index(i)) );
     }
     for (int index = 0; const auto &element: selected_organism.get_stack()) {
         simulation_stats->item(11 + index, 1)->setText(reg_to_QString(element));
@@ -277,8 +284,7 @@ void MainWindow::update_organisms_view() {
                        selected_organism_border_color);
 }
 
-void
-MainWindow::set_organism_color(const Organism &organism, const QColor &color,
+void MainWindow::set_organism_color(const Organism &organism, const QColor &color,
                                const QColor &border_color) {
     auto beg_row = organism.get_start()[1];
     auto fin_row = organism.get_start()[1] + organism.get_size()[1];

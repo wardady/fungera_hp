@@ -10,6 +10,7 @@
 #include <boost/serialization/stack.hpp>
 #include <cstdint>
 #include <optional>
+#include <random>
 #include "Memory.h"
 #include "Config.h"
 #include "Queue.h"
@@ -25,14 +26,16 @@ class Organism {
         ar & BOOST_SERIALIZATION_NVP(errors_m);
         ar & BOOST_SERIALIZATION_NVP(reproduction_cycle);
         ar & BOOST_SERIALIZATION_NVP(number_of_children);
-        ar & BOOST_SERIALIZATION_NVP(ID_seed);
+        ar & BOOST_SERIALIZATION_NVP(total_organism_num);
         ar & BOOST_SERIALIZATION_NVP(instruction_pointer);
         ar & BOOST_SERIALIZATION_NVP(size);
         ar & BOOST_SERIALIZATION_NVP(child_entry_point);
         ar & BOOST_SERIALIZATION_NVP(child_size);
         ar & BOOST_SERIALIZATION_NVP(begin);
         ar & BOOST_SERIALIZATION_NVP(delta);
-        ar & BOOST_SERIALIZATION_NVP(registers);
+        ar & BOOST_SERIALIZATION_NVP(*static_cast<gp_reg_t (*)[registers_N]>(
+                                         static_cast<void *>(registers.data())));
+            // Boost так робить для std::array.
         ar & BOOST_SERIALIZATION_NVP(stack);
         ar & BOOST_SERIALIZATION_NVP(children_id_list_m);
         ar & BOOST_SERIALIZATION_NVP(id_m);
@@ -43,7 +46,12 @@ class Organism {
     Organism();
 
 public:
-    bool operator<(const Organism &rhs) const;
+    using general_purpose_reg_base_t  = size_t; //! TODO: use signed type
+    using memory_index_base_t = size_t;
+    using gp_reg_t = std::array<general_purpose_reg_base_t, 2>;
+    using mem_reg_t = std::array<memory_index_base_t, 2>;
+    using delta_reg_t = std::array<int, 2>;
+    using stack_t = std::vector<std::array<size_t, 2>>;
 
     Organism(std::array<std::size_t, 2> size,
              std::array<std::size_t, 2> entry_point,
@@ -54,7 +62,7 @@ public:
 
     bool operator==(const Organism &rhs) const;
 
-    Organism &operator=(const Organism &rhs) = default;
+    Organism& operator=(const Organism &rhs) = default;
 
     Organism(const Organism &rhs) = default;
 
@@ -64,40 +72,43 @@ public:
 
     ~Organism();
 
-    size_t get_errors() const;
+    auto get_errors() const { return errors_m; };
 
-    const std::array<size_t, 2> &get_ip() const;
+    const auto& get_ip() const { return instruction_pointer; };
 
-    const std::array<int8_t, 2> &get_delta() const;
+    const auto& get_delta() const { return delta; };
 
-    const std::unordered_map<char, std::array<long long, 2>> &
-    get_registers() const;
+    const auto& get_registers() const { return registers; } // Тут -- заради auto спереду.
 
-    const std::array<size_t, 2> &get_start() const;
+    const auto& get_start() const { return begin; };
 
-    const std::array<size_t, 2> &get_size() const;
+    const auto& get_size() const { return size; };
 
-    const std::vector<std::array<long long, 2>> &get_stack() const;
+    const auto& get_stack() const { return stack; };
 
-    static size_t get_total_organism_num();
+    static auto get_total_organism_num() { return total_organism_num; };
 
     using instruction = void (Organism::*)();
     static const std::unordered_map<char, std::pair<std::array<uint8_t, 2>, instruction>> instructions;
 
-    const std::vector<size_t> &get_children() const;
+    const auto& get_children_id_list() const { return children_id_list_m; };
 
-    const size_t &get_parent() const;
+    auto get_parent() const { return parent_id_m; };
 
-    const size_t &get_id() const;
+    auto get_id() const { return id_m; }
 
     bool is_ip_within() const;
-
     bool is_ip_on_border() const;
 
-// private:
+    static bool is_correct_opcode(general_purpose_reg_base_t opcode);
+    bool get_random_opcode_base() const;
+
+    bool operator<(const Organism &rhs) const;
+
+    // private:
     Memory *memory_ptr_m = nullptr;
-    Queue *organism_queue_ptr_m = nullptr;
-    Config *conf_ptr_m = nullptr;
+    Queue *organism_queue_ptr_m  = nullptr;
+    Config *conf_ptr_m  = nullptr;
 
     size_t errors_m = 0; // TODO: Move to private (here just for debug)
     CommandHeatMap commands_hm_m;
@@ -113,7 +124,7 @@ private:
 
     void move_left();
 
-    std::array<size_t, 2> get_shifted_ip(size_t offset);
+    mem_reg_t get_shifted_ip(size_t offset);
 
     char get_next_operand(size_t offset);
 
@@ -143,21 +154,50 @@ private:
 
     void pop();
 
-    size_t reproduction_cycle = 0, number_of_children = 0;
-    static size_t ID_seed;
-    std::array<size_t, 2> instruction_pointer{0, 0};
-    std::array<size_t, 2> size{0, 0};
-    std::array<size_t, 2> child_entry_point{0, 0};
-    std::array<size_t, 2> child_size{0, 0};
-    std::array<size_t, 2> begin{0, 0};
-    std::array<int8_t, 2> delta{1, 0};
-    std::unordered_map<char, std::array<long long, 2>> registers{
-            {'a', {0, 0}},
-            {'b', {0, 0}},
-            {'c', {0, 0}},
-            {'d', {0, 0}}
+    size_t reproduction_cycle = 0;
+    size_t number_of_children = 0;
+    static size_t total_organism_num;
+
+    mem_reg_t instruction_pointer{0, 0};
+    mem_reg_t size{0, 0};
+    mem_reg_t child_entry_point{0, 0};
+    mem_reg_t child_size{0, 0};
+    mem_reg_t begin{0, 0};
+    delta_reg_t delta{1, 0};
+
+    static constexpr size_t registers_N = 4;
+    struct registers_t: private std::array<gp_reg_t, registers_N> { // Тут вже я перекреативив трохи, але поки хай буде...
+        using array::size;
+        using array::begin;
+        using array::cbegin;
+        using array::end;
+        using array::cend;
+        using array::data;
+
+        registers_t() = default;
+        registers_t(const gp_reg_t& init);
+
+        gp_reg_t& at_index(size_t idx){
+            return static_cast<std::array<gp_reg_t, registers_N>*>(this)->at(idx);
+        }
+        const gp_reg_t& at_index(size_t idx) const {
+            return static_cast<const std::array<gp_reg_t, registers_N>*>(this)->at(idx);
+        }
+
+        gp_reg_t& at_opcode(char opcode){
+            return static_cast<std::array<gp_reg_t, registers_N>*>(this)->at(operand_to_register(opcode));
+        }
+        const gp_reg_t& at_opcode(char opcode) const{
+            return static_cast<const std::array<gp_reg_t, registers_N>*>(this)->at(operand_to_register(opcode));
+        }
+    private:
+        static size_t operand_to_register(char op);
     };
-    std::vector<std::array<long long, 2>> stack;
+
+    registers_t  registers{ gp_reg_t{0, 0} };
+    static size_t operand_to_scalar(char op);
+
+    stack_t stack;
 
     std::vector<size_t> children_id_list_m;
     size_t id_m = 0;

@@ -5,7 +5,7 @@
 #include <list>
 #include <boost/serialization/access.hpp>
 #include <boost/serialization/list.hpp>
-#include "Organism.h"
+//#include "Organism.h"
 
 class Organism;
 
