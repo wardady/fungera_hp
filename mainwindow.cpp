@@ -73,6 +73,8 @@ void MainWindow::setup_gui() {
     cycle_btn = new QPushButton("Cycle", this);
     next_btn = new QPushButton("Next", this);
     prev_btn = new QPushButton("Prev", this);
+    advance_btn = new QPushButton("Advance",this);
+    advance_input = new QLineEdit(this);
     simulation_stats = new QTableWidget(this);
     memory_view = new QTableWidget(this);
     organism_selector = new QComboBox(this);
@@ -80,16 +82,21 @@ void MainWindow::setup_gui() {
     organism_selector->addItem("0");
     setup_stats_table(simulation_stats, simulation->config.stack_length);
     init_memory_view();
+    advance_input->setValidator(new QRegExpValidator(QRegExp("[1-9][0-9]*"), advance_input));
 
     auto main_layout = new QHBoxLayout;
     auto control_layout = new QVBoxLayout;
     auto button_layout = new QHBoxLayout;
+    auto advance_layout = new QHBoxLayout;
+    advance_layout->addWidget(advance_input);
+    advance_layout->addWidget(advance_btn);
     control_layout->addWidget(simulation_stats);
     control_layout->addWidget(organism_selector);
     button_layout->addWidget(toggle_btn);
     button_layout->addWidget(cycle_btn);
     button_layout->addWidget(next_btn);
     button_layout->addWidget(prev_btn);
+    control_layout->addLayout(advance_layout);
     control_layout->addLayout(button_layout);
     main_layout->addLayout(control_layout, 20);
     main_layout->addWidget(memory_view, 80);
@@ -223,6 +230,19 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                 update_organisms_view();
                 scroll_to_current_organism();
             }, Qt::DirectConnection);
+    connect(advance_input,&QLineEdit::returnPressed,this,
+            [this](){
+        advance_btn->click();
+    });
+    connect(advance_btn,&QPushButton::clicked,this,
+            [this](){
+        if(!this->simulation->is_running()){
+            QtConcurrent::run([this](){
+               for(size_t i=0;i<this->advance_input->text().toULongLong();++i)
+                   this->simulation->execute_cycle();
+            });
+        }
+    });
     update_organisms_view();
     scroll_to_current_organism();
 

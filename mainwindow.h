@@ -8,6 +8,7 @@
 #include <QThread>
 #include <QColor>
 #include <QComboBox>
+#include <QLineEdit>
 
 #include "Fungera.h"
 
@@ -21,7 +22,8 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QWidget *central_window;
-    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn;
+    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn, *advance_btn;
+    QLineEdit *advance_input;
     QTableWidget *simulation_stats;
     QTableWidget *memory_view;
     QThread *simulation_thread;
