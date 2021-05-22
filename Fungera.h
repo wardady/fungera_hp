@@ -93,6 +93,8 @@ public:
 
     int is_running() const { return is_running_m; }
 
+    void execute_organism(size_t id);
+
 private:
     mp::checked_uint1024_t cycle;
     size_t purges = 0;

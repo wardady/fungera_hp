@@ -22,7 +22,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
     QWidget *central_window;
-    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn, *advance_btn;
+    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn, *advance_btn, *selected_org_cycle;
     QLineEdit *advance_input;
     QTableWidget *simulation_stats;
     QTableWidget *memory_view;

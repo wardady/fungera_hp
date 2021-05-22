@@ -65,12 +65,13 @@ void Fungera::load_initial_genome(const std::string &filename,
         }
     }
     auto org_size = std::array<size_t, 2>{data.find('\n'),
-                                          static_cast<size_t>(std::count(data.begin(),
-                                                                         data.end(),
-                                                                         '\n'))};
+                                          static_cast<size_t>(std::count(
+                                                  data.begin(),
+                                                  data.end(),
+                                                  '\n'))};
     queue.push_organism(
             Organism(org_size, origin_address, origin_address,
-                        &memory, &queue, &config));
+                     &memory, &queue, &config));
 }
 
 void Fungera::info_log() {
@@ -117,10 +118,10 @@ void Fungera::radiation() {
         memory.set_cell_value(
                 config.random(static_cast<size_t>(0), memory.ncollumns),
                 config.random(static_cast<size_t>(0),
-                                memory.nrows), std::next(
+                              memory.nrows), std::next(
                         Organism::instructions.begin(),
                         config.random(static_cast<size_t>(0),
-                                        Organism::instructions.size()))->first);
+                                      Organism::instructions.size()))->first);
     }
 }
 
@@ -190,5 +191,15 @@ Fungera::get_organism(size_t organism_id) {
             return organism;
     }
     return {};
+}
+
+void Fungera::execute_organism(size_t id) {
+    auto &organisms = queue.get_container();
+    auto executed_organism = std::find(organisms.begin(), organisms.end(), id);
+    if (executed_organism != organisms.end()) {
+        executed_organism->cycle();
+    }
+    emit cycle_changed(
+            QString::fromStdString(cycle.str())); // Cycle didn't change, only 1 organism executed
 }
 

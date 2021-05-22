@@ -73,7 +73,8 @@ void MainWindow::setup_gui() {
     cycle_btn = new QPushButton("Cycle", this);
     next_btn = new QPushButton("Next", this);
     prev_btn = new QPushButton("Prev", this);
-    advance_btn = new QPushButton("Advance",this);
+    advance_btn = new QPushButton("Advance", this);
+    selected_org_cycle = new QPushButton("Cycle Selected", this);
     advance_input = new QLineEdit(this);
     simulation_stats = new QTableWidget(this);
     memory_view = new QTableWidget(this);
@@ -88,14 +89,17 @@ void MainWindow::setup_gui() {
     auto control_layout = new QVBoxLayout;
     auto button_layout = new QHBoxLayout;
     auto advance_layout = new QHBoxLayout;
+    auto selected_org_layout = new QHBoxLayout;
     advance_layout->addWidget(advance_input);
     advance_layout->addWidget(advance_btn);
     control_layout->addWidget(simulation_stats);
-    control_layout->addWidget(organism_selector);
+    selected_org_layout->addWidget(organism_selector);
+    selected_org_layout->addWidget(selected_org_cycle);
     button_layout->addWidget(toggle_btn);
     button_layout->addWidget(cycle_btn);
     button_layout->addWidget(next_btn);
     button_layout->addWidget(prev_btn);
+    control_layout->addLayout(selected_org_layout);
     control_layout->addLayout(advance_layout);
     control_layout->addLayout(button_layout);
     main_layout->addLayout(control_layout, 20);
@@ -119,7 +123,7 @@ const Organism &MainWindow::get_selected_organism() {
     }
 
     for (size_t i = selected_organism_idx; i > 0; --i) {
-        org = simulation->get_organism(i-1);
+        org = simulation->get_organism(i - 1);
         if (org) {
             selected_organism_idx = i;
             return *org;
@@ -153,13 +157,13 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
             Qt::BlockingQueuedConnection);
 
     connect(&(simulation->memory), &Memory::memory_cell_changed, memory_view,
-             [this](quint64 x, quint64 y, char value, bool free) {
+            [this](quint64 x, quint64 y, char value, bool free) {
                 auto changed_cell = memory_view->item(y, x);
                 auto brush = changed_cell->background();
-                if(free){
+                if (free) {
                     brush.setStyle(Qt::SolidPattern);
                     brush.setColor(nonorganism_color);
-                }else{
+                } else {
                     brush.setStyle(Qt::CrossPattern);
                     brush.setColor(nonorganism_allocated_color);
                 }
@@ -170,7 +174,8 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                 //memory_cell->setTextAlignment(Qt::AlignCenter);
                 //memory_cell->setBackground(old_color);
                 //memory_view->setItem(y,x, memory_cell);
-            },Qt::QueuedConnection); // Qt::BlockingQueuedConnection does not work here because of free cells update
+            },
+            Qt::QueuedConnection); // Qt::BlockingQueuedConnection does not work here because of free cells update
 
     simulation_stats->item(1, 1)->setText(
             QString::number(simulation->get_organisms_num()));
@@ -230,19 +235,27 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                 update_organisms_view();
                 scroll_to_current_organism();
             }, Qt::DirectConnection);
-    connect(advance_input,&QLineEdit::returnPressed,this,
-            [this](){
-        advance_btn->click();
-    });
-    connect(advance_btn,&QPushButton::clicked,this,
-            [this](){
-        if(!this->simulation->is_running()){
-            QtConcurrent::run([this](){
-               for(size_t i=0;i<this->advance_input->text().toULongLong();++i)
-                   this->simulation->execute_cycle();
+    connect(advance_input, &QLineEdit::returnPressed, this,
+            [this]() {
+                advance_btn->click();
             });
-        }
-    });
+    connect(advance_btn, &QPushButton::clicked, this,
+            [this]() {
+                if (!this->simulation->is_running()) {
+                    QtConcurrent::run([this]() {
+                        for (size_t i = 0; i < this->advance_input->text().toULongLong(); ++i)
+                            this->simulation->execute_cycle();
+                    });
+                }
+            });
+    connect(selected_org_cycle, &QPushButton::clicked, this,
+            [this]() {
+                if (!this->simulation->is_running()) {
+                    QtConcurrent::run([this]() {
+                        this->simulation->execute_organism(selected_organism_idx);
+                    });
+                }
+            });
     update_organisms_view();
     scroll_to_current_organism();
 
@@ -253,8 +266,8 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-void MainWindow::scroll_to_current_organism(){
-    const auto& organism = get_selected_organism();
+void MainWindow::scroll_to_current_organism() {
+    const auto &organism = get_selected_organism();
     auto organism_start = organism.get_start();
     memory_view->scrollToItem(
             memory_view->item(organism_start[0], organism_start[1]), //-V107
@@ -263,7 +276,7 @@ void MainWindow::scroll_to_current_organism(){
 
 void MainWindow::fungera_state_to_view(QString cycle) {
     simulation_stats->item(0, 1)->setText(cycle);
-    auto& selected_organism = get_selected_organism();
+    auto &selected_organism = get_selected_organism();
 
     std::array<size_t, 2> instruction_ptr = selected_organism.get_ip();
 
@@ -277,7 +290,7 @@ void MainWindow::fungera_state_to_view(QString cycle) {
     auto regs = selected_organism.get_registers();
     for (size_t i = 0; i < regs.size(); ++i) {
         simulation_stats->item(7 + i, 1)->setText(
-                reg_to_QString(regs.at_index(i)) );
+                reg_to_QString(regs.at_index(i)));
     }
     for (int index = 0; const auto &element: selected_organism.get_stack()) {
         simulation_stats->item(11 + index, 1)->setText(reg_to_QString(element));
@@ -305,7 +318,7 @@ void MainWindow::update_organisms_view() {
 }
 
 void MainWindow::set_organism_color(const Organism &organism, const QColor &color,
-                               const QColor &border_color) {
+                                    const QColor &border_color) {
     auto beg_row = organism.get_start()[1];
     auto fin_row = organism.get_start()[1] + organism.get_size()[1];
     auto beg_col = organism.get_start()[0];

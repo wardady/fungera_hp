@@ -62,6 +62,8 @@ public:
 
     bool operator==(const Organism &rhs) const;
 
+    bool operator==(size_t id)const;
+
     Organism& operator=(const Organism &rhs) = default;
 
     Organism(const Organism &rhs) = default;
