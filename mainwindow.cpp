@@ -6,6 +6,7 @@
 
 #include <QHBoxLayout>
 #include <QHeaderView>
+#include <QLabel>
 #include <QtConcurrent/QtConcurrentRun>
 
 void setup_stats_table(QTableWidget *tbl, int stack_length) {
@@ -13,11 +14,13 @@ void setup_stats_table(QTableWidget *tbl, int stack_length) {
     tbl->verticalHeader()->setVisible(false);
     tbl->horizontalHeader()->setVisible(false);
     QVector<QString> properties = {"Cycle", "Alive", "Purges", "Organism_id",
-                                   "  Errors", "  IP", "  Delta", "  RA",
-                                   "  RB", "  RC", "  RD"};
+                                   "    Errors", "    IP", "    Delta", "    RA",
+                                   "    RB", "    RC", "    RD"};
     for (int i{0}; i < stack_length; ++i) {
-        properties.append(QString("  Stack_").append(QString::number(i)));
+        properties.append(QString("    Stack_").append(QString::number(i)));
     }
+    properties.append("Begin");
+    properties.append("Size");
     tbl->setColumnCount(2);
     tbl->setRowCount(properties.size());
     for (auto i{0}; i < tbl->rowCount(); ++i) {
@@ -75,21 +78,36 @@ void MainWindow::setup_gui() {
     prev_btn = new QPushButton("Prev", this);
     advance_btn = new QPushButton("Advance", this);
     selected_org_cycle = new QPushButton("Cycle Selected", this);
+    stop_on_ip_in_cell_btn = new QPushButton("Stop",this);
+    stop_on_command_btn = new QPushButton("Stop",this);
     advance_input = new QLineEdit(this);
+    ip_x_input = new QLineEdit(this);
+    ip_y_input = new QLineEdit(this);
     simulation_stats = new QTableWidget(this);
     memory_view = new QTableWidget(this);
     organism_selector = new QComboBox(this);
+    stop_command_selector = new QComboBox(this);
+    auto x_ip_label = new QLabel("x:",this);
+    auto y_ip_label = new QLabel("y:",this);
 
+
+    for(const auto &instruciton:Organism::instructions){
+        stop_command_selector->addItem(QString(instruciton.first));
+    }
     organism_selector->addItem("0");
     setup_stats_table(simulation_stats, simulation->config.stack_length);
     init_memory_view();
     advance_input->setValidator(new QRegExpValidator(QRegExp("[1-9][0-9]*"), advance_input));
+    ip_x_input->setValidator(new QRegExpValidator(QRegExp("[1-9][0-9]*"), ip_x_input));
+    ip_y_input->setValidator(new QRegExpValidator(QRegExp("[1-9][0-9]*"), ip_y_input));
 
     auto main_layout = new QHBoxLayout;
     auto control_layout = new QVBoxLayout;
     auto button_layout = new QHBoxLayout;
     auto advance_layout = new QHBoxLayout;
     auto selected_org_layout = new QHBoxLayout;
+    auto stop_ip_in_cell_layout = new QHBoxLayout;
+    auto stop_on_command_layout = new QHBoxLayout;
     advance_layout->addWidget(advance_input);
     advance_layout->addWidget(advance_btn);
     control_layout->addWidget(simulation_stats);
@@ -99,7 +117,16 @@ void MainWindow::setup_gui() {
     button_layout->addWidget(cycle_btn);
     button_layout->addWidget(next_btn);
     button_layout->addWidget(prev_btn);
+    stop_ip_in_cell_layout->addWidget(x_ip_label);
+    stop_ip_in_cell_layout->addWidget(ip_x_input);
+    stop_ip_in_cell_layout->addWidget(y_ip_label);
+    stop_ip_in_cell_layout->addWidget(ip_y_input);
+    stop_ip_in_cell_layout->addWidget(stop_on_ip_in_cell_btn);
+    stop_on_command_layout->addWidget(stop_command_selector);
+    stop_on_command_layout->addWidget(stop_on_command_btn);
     control_layout->addLayout(selected_org_layout);
+    control_layout->addLayout(stop_on_command_layout);
+    control_layout->addLayout(stop_ip_in_cell_layout);
     control_layout->addLayout(advance_layout);
     control_layout->addLayout(button_layout);
     main_layout->addLayout(control_layout, 20);
@@ -134,7 +161,7 @@ const Organism &MainWindow::get_selected_organism() {
 
 MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
         : QMainWindow(parent), simulation(simulation), ui(new Ui::MainWindow),
-          selected_organism_idx{} {
+          selected_organism_idx{},check_for_ip{},stop_ip_coords{},check_for_command{} {
     ui->setupUi(this);
     setup_gui();
 
@@ -175,7 +202,7 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                 //memory_cell->setBackground(old_color);
                 //memory_view->setItem(y,x, memory_cell);
             },
-            Qt::QueuedConnection); // Qt::BlockingQueuedConnection does not work here because of free cells update
+            Qt::BlockingQueuedConnection); // Qt::BlockingQueuedConnection does not work here because of free cells update
 
     simulation_stats->item(1, 1)->setText(
             QString::number(simulation->get_organisms_num()));
@@ -256,6 +283,27 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
                     });
                 }
             });
+    connect(stop_on_ip_in_cell_btn, &QPushButton::clicked, this,
+            [this](){
+        QPalette *error_palette = new QPalette();
+        error_palette->setColor(QPalette::Base,Qt::red);
+        if(ip_x_input->text().toULongLong()>=this->simulation->memory.ncollumns || ip_y_input->text().toULongLong()>=this->simulation->memory.nrows){
+            ip_x_input->setPalette(*error_palette);
+            ip_y_input->setPalette(*error_palette);
+        }else{
+            error_palette->setColor(QPalette::Base,Qt::white);
+            ip_x_input->setPalette(*error_palette);
+            ip_y_input->setPalette(*error_palette);
+
+            stop_ip_coords[0]=ip_x_input->text().toULongLong();
+            stop_ip_coords[1]=ip_y_input->text().toULongLong();
+            check_for_ip=true;
+        }
+    });
+    connect(stop_on_command_btn, &QPushButton::clicked, this,
+            [this](){
+        check_for_command = true;
+    });
     update_organisms_view();
     scroll_to_current_organism();
 
@@ -276,9 +324,21 @@ void MainWindow::scroll_to_current_organism() {
 
 void MainWindow::fungera_state_to_view(QString cycle) {
     simulation_stats->item(0, 1)->setText(cycle);
+
+    if(check_for_ip){
+        auto new_organism = simulation->organism_ip_in_cell(stop_ip_coords);
+        if(new_organism.has_value()){
+            selected_organism_idx = new_organism.value();
+            check_for_ip = false;
+            simulation->toggle_simulaiton();
+        }
+    }
+
     auto &selected_organism = get_selected_organism();
 
     std::array<size_t, 2> instruction_ptr = selected_organism.get_ip();
+    auto begin = selected_organism.get_start();
+    auto size = selected_organism.get_size();
 
     simulation_stats->item(3, 1)->setText(
             QString::number(selected_organism.get_id()));
@@ -296,6 +356,8 @@ void MainWindow::fungera_state_to_view(QString cycle) {
         simulation_stats->item(11 + index, 1)->setText(reg_to_QString(element));
         ++index;
     }
+    simulation_stats->item(19, 1)->setText(reg_to_QString(begin));
+    simulation_stats->item(20, 1)->setText(reg_to_QString(size));
 
     memory_view->item(prev_ip_ptr_m[1], prev_ip_ptr_m[0])->setBackground(
             prev_ip_brush_m);
@@ -304,6 +366,13 @@ void MainWindow::fungera_state_to_view(QString cycle) {
     memory_view->item(instruction_ptr[1],
                       instruction_ptr[0])->setBackground(Qt::red);
     prev_ip_ptr_m = instruction_ptr;
+
+    if(check_for_command){
+        if(memory_view->item(instruction_ptr[1],instruction_ptr[0])->text()==stop_command_selector->currentText()){
+            simulation->toggle_simulaiton();
+            check_for_command=false;
+        }
+    }
 
 }
 

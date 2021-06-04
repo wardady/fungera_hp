@@ -203,3 +203,15 @@ void Fungera::execute_organism(size_t id) {
             QString::fromStdString(cycle.str())); // Cycle didn't change, only 1 organism executed
 }
 
+std::optional<size_t> Fungera::organism_ip_in_cell(const std::array<size_t,2> &coordinates) const{
+    auto &organisms = queue.get_container();
+    for(const auto & organism:organisms){
+        auto ip = organism.get_ip();
+        if(ip == coordinates){
+            return organism.get_id();
+        }
+    }
+    return {};
+}
+
+

@@ -2,6 +2,7 @@
 #define FUNGERA_FUNGERA_H
 
 #include <string>
+#include <array>
 #include <random>
 #include <QObject>
 #include <QString>
@@ -95,6 +96,7 @@ public:
 
     void execute_organism(size_t id);
 
+    std::optional<size_t> organism_ip_in_cell(const std::array<size_t,2> &coordinates) const;
 private:
     mp::checked_uint1024_t cycle;
     size_t purges = 0;

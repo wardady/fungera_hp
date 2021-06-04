@@ -27,7 +27,7 @@ void Memory::set_region_allocation(const std::array<size_t, 2> &ip,
     for (size_t i = ip[1]; i < ip[1] + size[1]; ++i)
         for (size_t j = ip[0]; j < ip[0] + size[0]; ++j) {
             (*this)(i, j).free = value;
-            //emit memory_cell_changed(j, i, (*this)(i, j).instruction, value); //! Deadlock here if BlockingQueuedConnection is used
+            emit memory_cell_changed(j, i, (*this)(i, j).instruction, value); //! Deadlock here if BlockingQueuedConnection is used
         }
 }
 
