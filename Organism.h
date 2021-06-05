@@ -103,7 +103,7 @@ public:
     bool is_ip_on_border() const;
 
     static bool is_correct_opcode(general_purpose_reg_base_t opcode);
-    bool get_random_opcode_base() const;
+    static char get_random_opcode_base(Config* conf);
 
     bool operator<(const Organism &rhs) const;
 

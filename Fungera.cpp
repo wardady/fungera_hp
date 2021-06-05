@@ -117,11 +117,8 @@ void Fungera::radiation() {
     for (int i{0}; i < radiation_dist(gen); ++i) {
         memory.set_cell_value(
                 config.random(static_cast<size_t>(0), memory.ncollumns),
-                config.random(static_cast<size_t>(0),
-                              memory.nrows), std::next(
-                        Organism::instructions.begin(),
-                        config.random(static_cast<size_t>(0),
-                                      Organism::instructions.size()))->first);
+                config.random(static_cast<size_t>(0), memory.nrows),
+                Organism::get_random_opcode_base(&config));
     }
 }
 

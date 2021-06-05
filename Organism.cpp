@@ -164,7 +164,7 @@ void Organism::write_inst() {
     char instruction = static_cast<char>(instruction_r);
     auto address = registers.at_opcode(get_next_operand(1));
     if (conf_ptr_m->has_mutated_on_copy()) {
-        instruction = get_random_opcode_base();
+        instruction = get_random_opcode_base(conf_ptr_m);
     }
     memory_ptr_m->set_cell_value(address[0], address[1], instruction);
 
@@ -356,8 +356,8 @@ bool Organism::is_correct_opcode(general_purpose_reg_base_t opcode) {
 }
 
 //! Base -- тому що потім будуть інші, наприклад, обмеження що в що мутує чи нерівномірний розподіл.
-bool Organism::get_random_opcode_base() const {
-    auto next_idx = conf_ptr_m->random<size_t>(0,
+char Organism::get_random_opcode_base(Config* conf) {
+    auto next_idx = conf->random<size_t>(0,
                                                Organism::instructions.size() -
                                                1);
     auto beg = instructions.cbegin();
