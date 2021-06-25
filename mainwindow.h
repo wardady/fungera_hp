@@ -23,13 +23,7 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-    QWidget *central_window;
-    QPushButton *toggle_btn, *cycle_btn,*next_btn,*prev_btn, *advance_btn, *selected_org_cycle, *stop_on_ip_in_cell_btn, *stop_on_command_btn;
-    QLineEdit *advance_input, *ip_x_input,*ip_y_input;
-    QTableWidget *simulation_stats;
-    QTableWidget *memory_view;
     QThread *simulation_thread;
-    QComboBox *organism_selector,*stop_command_selector;
     Fungera *simulation;
     size_t selected_organism_idx;
     bool check_for_ip,check_for_command;
