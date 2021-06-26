@@ -87,6 +87,7 @@ public:
     const auto& get_size() const { return size; };
 
     const auto& get_stack() const { return stack; };
+    auto get_stack_size() const { return stack.size(); };
 
     static auto get_total_organism_num() { return total_organism_num; };
 

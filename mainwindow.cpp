@@ -258,7 +258,7 @@ MainWindow::MainWindow(Fungera *simulation, QWidget *parent)
             stop_ip_coords[1]=ui->break_ip_y_input->text().toULongLong();
             check_for_ip=true;
     });
-    connect(ui->memory_view, QTableWidget::cellDoubleClicked, this,
+    connect(ui->memory_view, &QTableWidget::cellDoubleClicked, this,
             [this](int row, int col){
                 ui->break_ip_x_input->setValue(col);
                 ui->break_ip_y_input->setValue(row);
@@ -327,8 +327,16 @@ void MainWindow::fungera_state_to_view(QString cycle) {
     }
     for (int index = 0; const auto &element: selected_organism.get_stack()) {
         ui->simulation_stats->item(11 + index, 1)->setText(reg_to_QString(element));
+        ui->simulation_stats->item(11 + index, 1)->setForeground(
+                ui->simulation_stats->item(10, 1)->textColor()
+                );
         ++index;
     }
+    for (int index = selected_organism.get_stack().size(); index < simulation->config.stack_length; ++index) {
+        ui->simulation_stats->item(11 + index, 1)->setText("<empty>");
+        ui->simulation_stats->item(11 + index, 1)->setForeground(Qt::gray);
+    }
+
     ui->simulation_stats->item(19, 1)->setText(reg_to_QString(begin));
     ui->simulation_stats->item(20, 1)->setText(reg_to_QString(size));
 
